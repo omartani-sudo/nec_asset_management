@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NEC Asset Management{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <style>
+        .nec-header {
+            background: #fff;
+            border-bottom: 3px solid #0d6efd;
+            padding: 10px 0;
+        }
+        .nec-header img {
+            height: 50px;
+            margin-right: 15px;
+        }
+        .nec-header .institution-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0d6efd;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .nec-header .system-name {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin: 0;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <div class="nec-header">
+        <div class="container-fluid d-flex align-items-center">
+            <img src="{% static 'images/nec_logo.jpg' %}" alt="NEC Logo">
+            <div>
+                <p class="institution-name">National Electoral Commission</p>
+                <p class="system-name">Asset Management System</p>
+            </div>
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <div class="d-flex" id="wrapper">
+        <div class="bg-dark text-white" id="sidebar-wrapper">
+            <div class="sidebar-heading p-3 border-bottom border-secondary">
+                <i class="bi bi-building"></i> NEC Assets
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+                <a href="{% url 'fixed_assets:fixed_asset_list' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.app_name == 'fixed_assets' %}active{% endif %}">
+                    <i class="bi bi-laptop me-2"></i> Fixed Assets
+                </a>
+                <a href="{% url 'current_assets:current_asset_list' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.app_name == 'current_assets' %}active{% endif %}">
+                    <i class="bi bi-cash me-2"></i> Current Assets
+                </a>
+                <a href="{% url 'inventory:inventory_list' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.app_name == 'inventory' %}active{% endif %}">
+                    <i class="bi bi-box me-2"></i> Inventory
+                </a>
+                <a href="{% url 'reports:reports_home' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.app_name == 'reports' %}active{% endif %}">
+                    <i class="bi bi-bar-chart me-2"></i> Reports
+                </a>
+                <a href="{% url 'lists:lists_home' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.app_name == 'lists' %}active{% endif %}">
+                    <i class="bi bi-list me-2"></i> Lists
+                </a>
+            </div>
+        </div>
+        <div id="page-content-wrapper" class="flex-grow-1">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+                <div class="container-fluid">
+                    <button class="btn btn-outline-secondary" id="menu-toggle"><i class="bi bi-list"></i></button>
+                    <div class="ms-auto">
+                        <span class="navbar-text me-3">Welcome, {{ user.get_full_name|default:user.username }}</span>
+                        <a href="{% url 'authentication:logout' %}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </nav>
+            <div class="container-fluid p-4">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <h3 class="text-center mb-4"><i class="bi bi-building"></i> NEC Asset Management</h3>
+                        {% block unauthenticated_content %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.getElementById("menu-toggle")?.addEventListener("click", function(e) {
+        e.preventDefault();
+        document.getElementById("wrapper").classList.toggle("toggled");
+    });
+    </script>
+</body>
+</html>

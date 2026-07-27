@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h2>{{ title }}
+    {% if export_url %}
+    <a href="{% url export_url %}" class="btn btn-success float-end">Export Excel</a>
+    {% endif %}
+</h2>
+<div class="row">
+    <div class="col-md-5">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead><tr><th>Category</th><th>Count</th><th>Total Cost</th><th>Total NBV</th></tr></thead>
+                <tbody>
+                {% for r in data %}
+                <tr><td>{{ r.category__name }}</td><td>{{ r.count }}</td><td>{{ r.total_cost|floatformat:2 }}</td><td>{{ r.total_nbv|floatformat:2 }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if chart %}
+    <div class="col-md-7">
+        <img src="data:image/png;base64,{{ chart }}" class="img-fluid" alt="{{ title }}">
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

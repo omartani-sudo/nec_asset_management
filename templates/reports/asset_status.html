@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Asset Status{% endblock %}
+{% block content %}
+<h2>Asset Status Distribution
+    {% if export_url %}
+    <a href="{% url export_url %}" class="btn btn-success float-end">Export Excel</a>
+    {% endif %}
+</h2>
+<div class="row">
+    <div class="col-md-5">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead><tr><th>Status</th><th>Count</th></tr></thead>
+                <tbody>
+                {% for r in data %}
+                <tr><td>{{ r.status__name }}</td><td>{{ r.count }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if chart %}
+    <div class="col-md-7">
+        <img src="data:image/png;base64,{{ chart }}" class="img-fluid" alt="Asset Status">
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

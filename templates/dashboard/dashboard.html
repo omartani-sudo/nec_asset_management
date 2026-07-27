@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dashboard{{ block.super }}{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-laptop"></i> Fixed Assets</h5>
+                <p class="card-text display-4">{{ total_fixed }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-currency-dollar"></i> Purchase Cost</h5>
+                <p class="card-text display-6">{{ total_purchase_cost|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-graph-down"></i> Accum. Depr.</h5>
+                <p class="card-text display-6">{{ total_accumulated_depr|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-calculator"></i> Net Book Value</h5>
+                <p class="card-text display-6">{{ total_net_book_value|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-cash"></i> Current Assets</h5>
+                <p class="card-text display-6">{{ total_current|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-box"></i> Inv. Value</h5>
+                <p class="card-text display-6">{{ total_inventory|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Reorder Needed</h5>
+                <p class="card-text display-4">{{ reorder_needed }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark text-white">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-trash"></i> Disposed</h5>
+                <p class="card-text display-4">{{ disposed_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up"></i> Depreciation Trend (Annual)</h5>
+            </div>
+            <div class="card-body">
+                <img src="data:image/png;base64,{{ chart_base64|default:'' }}" class="img-fluid" alt="Depreciation Trend">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
