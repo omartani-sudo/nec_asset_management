@@ -152,6 +152,18 @@ Stock Status:
 - **CurrentAsset**: Current assets tracking
 - **InventoryItem**: Inventory with auto-calculated fields
 
+## Accessing the Application
+
+After starting the server, you can access the application using:
+
+- **Local:** `https://127.0.0.1:8000/`
+- **By Computer Name:** `https://DESKTOP-25CJHGD:8000/`
+- **By IP Address:** `https://192.169.169.44:8000/`
+
+Other devices on the same network can access it using:
+- `https://DESKTOP-25CJHGD:8000/` (preferred)
+- `https://192.169.169.44:8000/` (alternative)
+
 ## Management Commands
 
 ```bash
@@ -171,15 +183,15 @@ python manage.py collectstatic       # Collect static files (production)
 
 If your local IP address changes (e.g., different WiFi/Ethernet), update these files:
 
-1. **`nec_asset_management/settings.py`**: Update `ALLOWED_HOSTS` with your new IP
+1. **`nec_asset_management/settings.py`**: Update `ALLOWED_HOSTS` with your new IP and keep the computer name
 2. **Regenerate SSL certificates**:
    ```bash
-   mkcert 192.169.169.44 localhost 127.0.0.1
+   mkcert 192.169.169.44 localhost 127.0.0.1 DESKTOP-25CJHGD
    ```
-   Replace `192.169.169.44` with your actual IP.
+   Replace `192.169.169.44` and `DESKTOP-25CJHGD` with your actual IP and computer name.
 3. **Restart the server**:
    ```bash
-   python manage.py runserver_plus 0.0.0.0:8000 --cert-file "192.169.169.44+2.pem" --key-file "192.169.169.44+2-key.pem"
+   python manage.py runserver_plus 0.0.0.0:8000 --cert-file "192.169.169.44+3.pem" --key-file "192.169.169.44+3-key.pem"
    ```
 4. **Reinstall certificate on mobile devices** if using HTTPS
 
