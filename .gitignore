@@ -34,3 +34,4 @@ Thumbs.db
 # SSL certificates
 *.pem
 *.key
+*.crt

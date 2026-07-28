@@ -167,6 +167,22 @@ python manage.py collectstatic       # Collect static files (production)
 - Rotating the secret key is recommended for production.
 - The dashboard generates Matplotlib charts on-the-fly as base64 images.
 
+## Changing Network / IP Address
+
+If your local IP address changes (e.g., different WiFi/Ethernet), update these files:
+
+1. **`nec_asset_management/settings.py`**: Update `ALLOWED_HOSTS` with your new IP
+2. **Regenerate SSL certificates**:
+   ```bash
+   mkcert 192.169.169.44 localhost 127.0.0.1
+   ```
+   Replace `192.169.169.44` with your actual IP.
+3. **Restart the server**:
+   ```bash
+   python manage.py runserver_plus 0.0.0.0:8000 --cert-file "192.169.169.44+2.pem" --key-file "192.169.169.44+2-key.pem"
+   ```
+4. **Reinstall certificate on mobile devices** if using HTTPS
+
 ## Troubleshooting
 
 - **"ModuleNotFoundError"**: Ensure all apps are in `INSTALLED_APPS` and migrations are applied.
