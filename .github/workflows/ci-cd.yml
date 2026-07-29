@@ -17,7 +17,7 @@ jobs:
           POSTGRES_USER: nec_user
           POSTGRES_PASSWORD: nec_secure_pass
         options: >-
-          --health-cmd pg_isready -U nec_user -D nec_asset_management
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
