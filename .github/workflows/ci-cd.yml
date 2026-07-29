@@ -65,6 +65,10 @@ jobs:
     needs: validate
     permissions:
       contents: read
+    env:
+      DJANGO_SECRET_KEY: test-secret-key-for-ci-only
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

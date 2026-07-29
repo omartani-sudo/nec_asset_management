@@ -19,6 +19,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Final stage
 FROM python:3.13-slim
 
+# Build arg for collectstatic — real key must be set at runtime via env
+ARG DJANGO_SECRET_KEY=build-time-key-not-for-runtime
+
 # Create non-root user
 RUN groupadd -r django && useradd -r -g django django
 
@@ -43,8 +46,8 @@ USER django
 # Expose port
 EXPOSE 8000
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Collect static files (uses build arg, overridden by env at runtime)
+RUN DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY python manage.py collectstatic --noinput
 
 # Run with Gunicorn via entrypoint
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
