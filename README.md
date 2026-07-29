@@ -1,6 +1,6 @@
 # NEC Asset Management System
 
-A comprehensive, web-based Asset Management System designed for the National Electoral Commission (NEC). This system digitizes and automates asset management, replacing manual spreadsheets with a dynamic web application.
+A comprehensive, production-ready Asset Management System designed for the National Electoral Commission (NEC). This system digitizes and automates asset management, replacing manual spreadsheets with a dynamic web application and REST API.
 
 ## Features
 
@@ -11,11 +11,13 @@ A comprehensive, web-based Asset Management System designed for the National Ele
 - **Reports**: Auto-generated reports by category, department, status, and reorder lists
 - **Lists Management**: Editable dropdown lists (admin only)
 - **Role-Based Access**: Admin, Finance, User, and Viewer roles
+- **REST API**: Full CRUD API with JWT authentication and role-based permissions
 - **Responsive Design**: Works on desktop, tablet, and mobile
 
 ## Technology Stack
 
 - **Backend**: Python 3.13, Django 6.0.7, Django REST Framework
+- **API Auth**: JWT via `djangorestframework-simplejwt`
 - **Database**: PostgreSQL 17
 - **Frontend**: Django Templates, Bootstrap 5, JavaScript
 - **Reporting**: Matplotlib, OpenPyXL
@@ -23,6 +25,7 @@ A comprehensive, web-based Asset Management System designed for the National Ele
 - **Server**: Gunicorn + WhiteNoise
 - **Caching**: Redis
 - **Containerization**: Docker & Docker Compose
+- **CI/CD**: GitHub Actions
 
 ## Quick Start
 
@@ -45,7 +48,7 @@ A comprehensive, web-based Asset Management System designed for the National Ele
    ```
 
 3. **Edit `.env` with your settings:**
-   ```bash
+   ```env
    DJANGO_SECRET_KEY=your-secret-key-here
    DJANGO_DEBUG=False
    DATABASE_URL=postgres://nec_user:nec_secure_pass@db:5432/nec_asset_management
@@ -70,6 +73,71 @@ A comprehensive, web-based Asset Management System designed for the National Ele
 7. **Access the application:**
    - Open browser to `http://localhost:8000/`
    - Log in with superuser credentials
+
+## REST API
+
+The application exposes a full REST API under `/api/`. All API endpoints require authentication unless noted.
+
+### Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/login/` | Obtain JWT access/refresh tokens |
+| POST | `/api/auth/login/refresh/` | Refresh access token |
+| POST | `/api/auth/logout/` | Logout current session |
+
+### Example: Login
+
+```bash
+curl -X POST http://localhost:8000/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"yourpassword"}'
+```
+
+Response:
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOi...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOi..."
+}
+```
+
+### Using the API
+
+Include the access token in the `Authorization` header:
+
+```bash
+curl http://localhost:8000/api/fixed-assets/fixed-assets/ \
+  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi..."
+```
+
+### Endpoints
+
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| GET/POST | `/api/auth/users/` | Admin create, all authenticated read |
+| GET/POST | `/api/fixed-assets/fixed-assets/` | Finance/Admin write, all authenticated read |
+| GET | `/api/fixed-assets/depreciation-schedules/` | All authenticated read |
+| GET/POST | `/api/current-assets/current-assets/` | Finance/Admin write, all authenticated read |
+| GET/POST | `/api/inventory/inventory-items/` | Finance/Admin write, all authenticated read |
+| GET/POST | `/api/lists/categories/` | Admin write, all authenticated read |
+| GET/POST | `/api/lists/departments/` | Admin write, all authenticated read |
+| GET/POST | `/api/lists/locations/` | Admin write, all authenticated read |
+| GET/POST | `/api/lists/statuses/` | Admin write, all authenticated read |
+| GET/POST | `/api/lists/units/` | Admin write, all authenticated read |
+
+### API Permissions
+
+- **Admin**: Full access to all endpoints
+- **Finance**: Can create/update fixed assets, current assets, inventory items; read-only for lists
+- **User**: Read-only access to assets and inventory
+- **Viewer**: Read-only access to assets and inventory
+
+### Pagination & Throttling
+
+- Page size: 20 items per page
+- Anonymous rate limit: 100 requests/day
+- Authenticated rate limit: 1,000 requests/day
 
 ## Docker Commands
 
@@ -127,6 +195,7 @@ SECURE_SSL_REDIRECT=True
 SESSION_COOKIE_SECURE=True
 CSRF_COOKIE_SECURE=True
 CSRF_TRUSTED_ORIGINS=https://your-domain.com,https://www.your-domain.com
+CORS_ALLOWED_ORIGINS=https://your-domain.com,https://www.your-domain.com
 EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
@@ -150,6 +219,7 @@ EMAIL_USE_TLS=True
 - `X_FRAME_OPTIONS=DENY`
 - `SECURE_CONTENT_TYPE_NOSNIFF=True`
 - `SECURE_BROWSER_XSS_FILTER=True`
+- `SECURE_REFERRER_POLICY=strict-origin-when-cross-origin`
 
 ### Static Files
 
@@ -164,6 +234,33 @@ Static files are collected to `/app/staticfiles/` in the container.
 ### Media Files
 
 Media files are stored in `/app/media/` and should be persisted using Docker volumes.
+
+## Testing
+
+### Run Tests Locally
+
+```bash
+# Using Django test runner (requires PostgreSQL running)
+python manage.py test
+
+# Using pytest with SQLite
+pytest
+```
+
+### Test Coverage
+
+- Health check endpoint validation
+- JWT login/logout flow
+- Permission enforcement (admin vs user)
+- CRUD operations on fixed assets
+
+### CI/CD
+
+GitHub Actions runs on every push and pull request to `main`:
+
+1. **Validate**: `check`, `migrate`, `collectstatic`, `test`
+2. **Docker**: Build image and verify
+3. **Push**: Push to GitHub Container Registry (GHCR) on main branch
 
 ## Database
 
@@ -199,7 +296,7 @@ Response:
     "message": "All systems operational",
     "database": "connected",
     "migrations": "applied",
-    "timestamp": "2024-01-01T00:00:00Z"
+    "timestamp": "2026-07-29T00:00:00Z"
 }
 ```
 
@@ -232,21 +329,53 @@ nec_asset_management/
 │   │   ├── __init__.py
 │   │   ├── base.py
 │   │   ├── development.py
-│   │   └── production.py
+│   │   ├── production.py
+│   │   └── test.py
 │   ├── urls.py
 │   ├── wsgi.py
 │   └── asgi.py
 ├── authentication/
+│   ├── api_urls.py
+│   ├── api_views.py
+│   ├── serializers.py
+│   ├── views.py
+│   ├── models.py
+│   └── urls.py
 ├── fixed_assets/
+│   ├── api_urls.py
+│   ├── api_views.py
+│   ├── serializers.py
+│   ├── views.py
+│   ├── models.py
+│   └── urls.py
 ├── current_assets/
+│   ├── api_urls.py
+│   ├── api_views.py
+│   ├── serializers.py
+│   ├── views.py
+│   ├── models.py
+│   └── urls.py
 ├── inventory/
+│   ├── api_urls.py
+│   ├── api_views.py
+│   ├── serializers.py
+│   ├── views.py
+│   ├── models.py
+│   └── urls.py
 ├── lists/
+│   ├── api_urls.py
+│   ├── api_views.py
+│   ├── serializers.py
+│   ├── views.py
+│   ├── models.py
+│   └── urls.py
 ├── reports/
 ├── dashboard/
 ├── core/
 ├── templates/
 ├── static/
 ├── media/
+├── tests/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .dockerignore
@@ -267,6 +396,8 @@ See `.env.example` for all available environment variables.
 - `SECURE_SSL_REDIRECT`: Set to `True` in production
 - `SESSION_COOKIE_SECURE`: Set to `True` in production
 - `CSRF_COOKIE_SECURE`: Set to `True` in production
+- `CORS_ALLOWED_ORIGINS`: Comma-separated list of allowed CORS origins
+- `CSRF_TRUSTED_ORIGINS`: Comma-separated list of trusted origins for CSRF
 
 ## Troubleshooting
 
