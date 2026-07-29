@@ -22,6 +22,7 @@ CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
 DATABASES = {
     'default': env.db('DATABASE_URL', default='postgres://nec_user:nec_secure_pass@localhost:5432/nec_asset_management')
 }
+DATABASES['default']['CONN_MAX_AGE'] = env.int('DB_CONN_MAX_AGE', default=600)
 
 # Security settings
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=True)

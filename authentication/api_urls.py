@@ -9,7 +9,7 @@ router.register(r'users', UserViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('auth/login/', TokenObtainPairView.as_view(), name='api-login'),
-    path('auth/login/refresh/', TokenRefreshView.as_view(), name='api-token-refresh'),
-    path('auth/logout/', UserViewSet.as_view({'post': 'logout'}), name='api-logout'),
+    path('login/', TokenObtainPairView.as_view(), name='api-login'),
+    path('login/refresh/', TokenRefreshView.as_view(), name='api-token-refresh'),
+    path('logout/', UserViewSet.as_view({'post': 'logout'}), name='api-logout'),
 ]
