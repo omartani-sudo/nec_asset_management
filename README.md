@@ -16,187 +16,329 @@ A comprehensive, web-based Asset Management System designed for the National Ele
 ## Technology Stack
 
 - **Backend**: Python 3.13, Django 6.0.7, Django REST Framework
-- **Database**: SQLite (development), easily upgradeable to PostgreSQL
+- **Database**: PostgreSQL 17
 - **Frontend**: Django Templates, Bootstrap 5, JavaScript
-- **Reporting**: Matplotlib, ReportLab, WeasyPrint
+- **Reporting**: Matplotlib, OpenPyXL
 - **Authentication**: Django built-in auth with custom User model
+- **Server**: Gunicorn + WhiteNoise
+- **Caching**: Redis
+- **Containerization**: Docker & Docker Compose
 
-## Setup Instructions
+## Quick Start
 
 ### Prerequisites
 
-- Python 3.13+
-- pip
-- A modern web browser
+- Docker & Docker Compose
+- Python 3.13+ (for local development without Docker)
 
 ### Installation
 
-1. **Clone or extract the project** to your desired directory.
-
-2. **Install dependencies**:
+1. **Clone the repository:**
    ```bash
-   pip install -r requirements.txt
+   git clone https://github.com/omartani-sudo/nec_asset_management.git
+   cd nec_asset_management
    ```
 
-3. **Apply migrations**:
+2. **Copy environment file:**
    ```bash
-   python manage.py migrate
+   cp .env.example .env
    ```
 
-4. **Create a superuser** (admin):
+3. **Edit `.env` with your settings:**
    ```bash
-   python manage.py createsuperuser
-   # Follow prompts. Set role to 'admin'.
-   ```
-   Or use the quick script:
-   ```bash
-   python manage.py shell -c "from authentication.models import User; User.objects.create_superuser('admin', 'admin@nec.gov', 'admin123', role='admin')"
+   DJANGO_SECRET_KEY=your-secret-key-here
+   DJANGO_DEBUG=False
+   DATABASE_URL=postgres://nec_user:nec_secure_pass@db:5432/nec_asset_management
+   REDIS_URL=redis://redis:6379/0
    ```
 
-5. **Run the development server**:
+4. **Start with Docker Compose:**
    ```bash
-   python manage.py runserver
+   docker-compose up -d
    ```
 
-6. **Access the application**:
-   - Open your browser to `http://127.0.0.1:8000/`
-   - Log in with the superuser credentials
-   - Or access the Django admin panel at `http://127.0.0.1:8000/admin/`
+5. **Run migrations:**
+   ```bash
+   docker-compose exec web python manage.py migrate
+   ```
+
+6. **Create superuser:**
+   ```bash
+   docker-compose exec web python manage.py createsuperuser
+   ```
+
+7. **Access the application:**
+   - Open browser to `http://localhost:8000/`
+   - Log in with superuser credentials
+
+## Docker Commands
+
+```bash
+# Start services
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f web
+
+# Run migrations
+docker-compose exec web python manage.py migrate
+
+# Create superuser
+docker-compose exec web python manage.py createsuperuser
+
+# Collect static files
+docker-compose exec web python manage.py collectstatic --noinput
+
+# Open Django shell
+docker-compose exec web python manage.py shell
+```
+
+## Coolify Deployment
+
+### Build Command
+```bash
+docker-compose build web
+```
+
+### Start Command
+```bash
+docker-compose up -d web
+```
+
+### Health Check URL
+```
+http://localhost:8000/health/
+```
+
+### Environment Variables for Coolify
+
+Set these in Coolify's environment variables section:
+
+```env
+DJANGO_SECRET_KEY=your-production-secret-key-here
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=your-domain.com,www.your-domain.com
+DATABASE_URL=postgres://nec_user:nec_secure_pass@db:5432/nec_asset_management
+REDIS_URL=redis://redis:6379/0
+SECURE_SSL_REDIRECT=True
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+CSRF_TRUSTED_ORIGINS=https://your-domain.com,https://www.your-domain.com
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+DEFAULT_FROM_EMAIL=noreply@nec.gov
+EMAIL_USE_TLS=True
+```
+
+## Production Settings
+
+### Security
+
+- `DEBUG=False`
+- `SECURE_SSL_REDIRECT=True`
+- `SESSION_COOKIE_SECURE=True`
+- `CSRF_COOKIE_SECURE=True`
+- `SECURE_HSTS_SECONDS=31536000`
+- `SECURE_HSTS_INCLUDE_SUBDOMAINS=True`
+- `SECURE_HSTS_PRELOAD=True`
+- `X_FRAME_OPTIONS=DENY`
+- `SECURE_CONTENT_TYPE_NOSNIFF=True`
+- `SECURE_BROWSER_XSS_FILTER=True`
+
+### Static Files
+
+WhiteNoise serves static files efficiently without requiring Nginx:
+
+```bash
+python manage.py collectstatic
+```
+
+Static files are collected to `/app/staticfiles/` in the container.
+
+### Media Files
+
+Media files are stored in `/app/media/` and should be persisted using Docker volumes.
+
+## Database
+
+### PostgreSQL Backup
+
+```bash
+# Backup
+docker-compose exec db pg_dump -U nec_user nec_asset_management > backup.sql
+
+# Restore
+docker-compose exec -T db psql -U nec_user nec_asset_management < backup.sql
+```
+
+### Media Backup
+
+```bash
+# Backup media volume
+docker run --rm -v nec_asset_management_media_volume:/data -v $(pwd):/backup alpine tar cvf /backup/media_backup.tar -C /data .
+```
+
+## Health Check
+
+The application provides a health check endpoint:
+
+```
+GET /health/
+```
+
+Response:
+```json
+{
+    "status": "ok",
+    "message": "All systems operational",
+    "database": "connected",
+    "migrations": "applied",
+    "timestamp": "2024-01-01T00:00:00Z"
+}
+```
+
+HTTP Status Codes:
+- `200 OK`: All systems operational
+- `500 Internal Server Error`: Database or migration issues
+
+## Logging
+
+Logs are output to stdout/stderr for Docker containers:
+
+```bash
+# View logs
+docker-compose logs -f web
+docker-compose logs -f db
+docker-compose logs -f redis
+```
+
+Log levels:
+- INFO: General application flow
+- WARNING: Django warnings
+- ERROR: Application errors
 
 ## Project Structure
 
 ```
 nec_asset_management/
-├── nec_asset_management/       # Project package
-│   ├── settings.py
+├── nec_asset_management/
+│   ├── settings/
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   ├── development.py
+│   │   └── production.py
 │   ├── urls.py
 │   ├── wsgi.py
 │   └── asgi.py
-├── authentication/             # Custom User model and auth views
-├── fixed_assets/               # Fixed Assets module
-│   ├── models.py
-│   ├── views.py
-│   ├── forms.py
-│   └── templates/
-├── current_assets/             # Current Assets module
-│   ├── models.py
-│   ├── views.py
-│   ├── forms.py
-│   └── templates/
-├── inventory/                  # Inventory module
-│   ├── models.py
-│   ├── views.py
-│   ├── forms.py
-│   └── templates/
-├── lists/                      # Standard dropdown lists
-│   ├── models.py
-│   ├── views.py
-│   └── templates/
-├── reports/                    # Reporting module
-│   ├── views.py
-│   └── templates/
-├── dashboard/                  # Dashboard module
-│   ├── views.py
-│   └── templates/
-├── core/                       # Core functionality
-│   ├── views.py
-│   └── context_processors.py
+├── authentication/
+├── fixed_assets/
+├── current_assets/
+├── inventory/
+├── lists/
+├── reports/
+├── dashboard/
+├── core/
 ├── templates/
-│   └── base.html               # Base template with sidebar nav
 ├── static/
-│   ├── css/
-│   └── js/
+├── media/
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
+├── .env.example
+├── requirements.txt
 └── manage.py
 ```
 
-## Core Calculations
+## Environment Variables
 
-### Depreciation - Straight Line
+See `.env.example` for all available environment variables.
+
+### Required for Production
+
+- `DJANGO_SECRET_KEY`: Django secret key (keep secure!)
+- `DATABASE_URL`: PostgreSQL database URL
+- `DJANGO_ALLOWED_HOSTS`: Comma-separated list of allowed hosts
+- `SECURE_SSL_REDIRECT`: Set to `True` in production
+- `SESSION_COOKIE_SECURE`: Set to `True` in production
+- `CSRF_COOKIE_SECURE`: Set to `True` in production
+
+## Troubleshooting
+
+### Database Connection Issues
+
+```bash
+# Check if PostgreSQL is running
+docker-compose ps db
+
+# Check PostgreSQL logs
+docker-compose logs db
+
+# Test connection
+docker-compose exec web python manage.py shell -c "from django.db import connection; print(connection.ensure_connection())"
 ```
-Annual Depreciation = (Purchase Cost - Salvage Value) / Useful Life
-Accumulated Depreciation = Annual Depreciation × Years Elapsed
-Net Book Value = Purchase Cost - Accumulated Depreciation
+
+### Static Files Not Loading
+
+```bash
+# Recollect static files
+docker-compose exec web python manage.py collectstatic --noinput --clear
+
+# Check WhiteNoise is enabled
+docker-compose exec web python manage.py shell -c "from django.conf import settings; print(settings.STATICFILES_STORAGE)"
 ```
 
-### Depreciation - Reducing Balance
-```
-Year 1 Depreciation = (Purchase Cost - Salvage Value) × (2 / Useful Life)
-Subsequent Years = Applied to remaining Net Book Value
-```
+### Migration Issues
 
-### Inventory
-```
-Balance Qty = Opening Stock + Received Qty - Issued Qty
-Total Value = Balance Qty × Unit Cost
-Stock Status:
-  - "Out of Stock" if Balance = 0
-  - "Reorder Needed" if Balance <= Reorder Level and Balance > 0
-  - "OK" if Balance > Reorder Level
+```bash
+# Check migration status
+docker-compose exec web python manage.py showmigrations
+
+# Apply migrations
+docker-compose exec web python manage.py migrate
+
+# Fake migrations if needed
+docker-compose exec web python manage.py migrate --fake
 ```
 
-## User Roles
+### Permission Issues
 
-| Role | Permissions |
-|------|-------------|
-| Admin | Full access, can manage Lists |
-| Finance | Can add/edit assets, view reports |
-| User | Can add/edit assets, view reports |
-| Viewer | Read-only access |
-
-## Database Models
-
-- **User** (authentication): Extends AbstractUser with role, phone, department
-- **Category, Department, Location, Status, Unit** (lists): Standardized dropdown values
-- **FixedAsset**: Core fixed asset data with depreciation methods
-- **DepreciationSchedule**: 10-year depreciation schedule per asset
-- **CurrentAsset**: Current assets tracking
-- **InventoryItem**: Inventory with auto-calculated fields
-
-## Accessing the Application
-
-After starting the server, you can access the application using:
-
-- **Local:** `https://127.0.0.1:8000/`
-- **By Computer Name:** `https://DESKTOP-25CJHGD:8000/`
-- **By IP Address:** `https://192.169.169.44:8000/`
-
-Other devices on the same network can access it using:
-- `https://DESKTOP-25CJHGD:8000/` (preferred)
-- `https://192.169.169.44:8000/` (alternative)
+```bash
+# Fix media directory permissions
+docker-compose exec web chown -R django:django /app/media
+```
 
 ## Management Commands
 
 ```bash
-python manage.py createsuperuser    # Create admin user
-python manage.py shell               # Open Django shell for data operations
-python manage.py runserver           # Start development server
-python manage.py collectstatic       # Collect static files (production)
+# Django shell
+python manage.py shell
+
+# Create superuser
+python manage.py createsuperuser
+
+# Run migrations
+python manage.py migrate
+
+# Collect static files
+python manage.py collectstatic --noinput
+
+# Check system
+python manage.py check
+
+# Show URLs
+python manage.py show_urls
 ```
 
-## Notes
+## License
 
-- The system uses SQLite by default for easy deployment. To switch to PostgreSQL, update `DATABASES` in `settings.py`.
-- Rotating the secret key is recommended for production.
-- The dashboard generates Matplotlib charts on-the-fly as base64 images.
+Proprietary - National Electoral Commission (NEC)
 
-## Changing Network / IP Address
+## Support
 
-If your local IP address changes (e.g., different WiFi/Ethernet), update these files:
-
-1. **`nec_asset_management/settings.py`**: Update `ALLOWED_HOSTS` with your new IP and keep the computer name
-2. **Regenerate SSL certificates**:
-   ```bash
-   mkcert 192.169.169.44 localhost 127.0.0.1 DESKTOP-25CJHGD
-   ```
-   Replace `192.169.169.44` and `DESKTOP-25CJHGD` with your actual IP and computer name.
-3. **Restart the server**:
-   ```bash
-   python manage.py runserver_plus 0.0.0.0:8000 --cert-file "192.169.169.44+3.pem" --key-file "192.169.169.44+3-key.pem"
-   ```
-4. **Reinstall certificate on mobile devices** if using HTTPS
-
-## Troubleshooting
-
-- **"ModuleNotFoundError"**: Ensure all apps are in `INSTALLED_APPS` and migrations are applied.
-- **"ImproperlyConfigured"**: Verify `DATABASES` settings in `settings.py`.
-- **"No module named 'django' "**: Install requirements with `pip install -r requirements.txt`.
+For issues and questions, contact the NEC IT department.

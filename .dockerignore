@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Django
+db.sqlite3
+*.sqlite3
+local_settings.py
+staticfiles/
+media/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Certificates
+*.pem
+*.key
+*.crt
+
+# Backup files
+*.backup
+*.bak

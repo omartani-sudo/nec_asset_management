@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: nec_asset_management
+    command: gunicorn nec_asset_management.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
+    volumes:
+      - .:/app
+      - media_volume:/app/media
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=nec_asset_management.settings.production
+      - DATABASE_URL=postgres://nec_user:nec_secure_pass@db:5432/nec_asset_management
+      - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SECRET_KEY=change-me-in-production
+      - DJANGO_DEBUG=False
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - SECURE_SSL_REDIRECT=False
+      - SESSION_COOKIE_SECURE=False
+      - CSRF_COOKIE_SECURE=False
+    depends_on:
+      - db
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  db:
+    image: postgres:17-alpine
+    container_name: nec_asset_management_db
+    environment:
+      - POSTGRES_DB=nec_asset_management
+      - POSTGRES_USER=nec_user
+      - POSTGRES_PASSWORD=nec_secure_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nec_user -d nec_asset_management"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: nec_asset_management_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+  media_volume:
+  static_volume:

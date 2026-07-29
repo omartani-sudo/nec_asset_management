@@ -16,12 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
-from dashboard.views import dashboard
+from core.views import health_check
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', dashboard, name='dashboard'),
+    path('', include('dashboard.urls')),
+    path('health/', health_check, name='health_check'),
+    path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('accounts/', include('authentication.urls')),
     path('fixed-assets/', include('fixed_assets.urls')),
     path('current-assets/', include('current_assets.urls')),
