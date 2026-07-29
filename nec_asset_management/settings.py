@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-q%fqk84*@=0osjswlhqkcrggr-v3*2%b-d*lcbjychq*9168ic'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-q%fqk84*@=0osjswlhqkcrggr-v3*2%b-d*lcbjychq*9168ic')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.42', '192.169.169.44', 'DESKTOP-25CJHGD', '192.168.1.*']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.232', '192.169.169.44', 'DESKTOP-25CJHGD', '192.168.1.*']
 
 
 # Application definition
@@ -84,6 +85,7 @@ TEMPLATES = [
 # Static files
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files
 MEDIA_URL = 'media/'
@@ -105,8 +107,13 @@ WSGI_APPLICATION = 'nec_asset_management.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'nec_asset_management',
+        'USER': 'nec_user',
+        'PASSWORD': 'nec_secure_pass',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'CONN_MAX_AGE': 600,
     }
 }
 
