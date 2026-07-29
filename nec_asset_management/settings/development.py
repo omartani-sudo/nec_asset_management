@@ -20,4 +20,25 @@ DATABASES = {
 # Email backend for development (console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# CORS settings for development
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8000',
+    'http://192.168.1.232:8000',
+    'http://192.169.169.44:8000',
+    'http://DESKTOP-25CJHGD:8000',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:8000',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:8000',
+    'http://192.168.1.232:8000',
+    'http://192.169.169.44:8000',
+    'http://DESKTOP-25CJHGD:8000',
+]
+
 

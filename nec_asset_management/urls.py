@@ -30,4 +30,9 @@ urlpatterns = [
     path('inventory/', include('inventory.urls')),
     path('reports/', include('reports.urls')),
     path('lists/', include('lists.urls')),
+    path('api/auth/', include('authentication.api_urls')),
+    path('api/fixed-assets/', include('fixed_assets.api_urls')),
+    path('api/current-assets/', include('current_assets.api_urls')),
+    path('api/inventory/', include('inventory.api_urls')),
+    path('api/lists/', include('lists.api_urls')),
 ]

@@ -36,6 +36,7 @@ django-bootstrap5==26.2
 django-extensions==4.1
 Werkzeug==3.1.8
 pyOpenSSL==26.3.0
+django-cors-headers==4.9.0
 
 # ASGI / WSGI
 asgiref==3.12.1
