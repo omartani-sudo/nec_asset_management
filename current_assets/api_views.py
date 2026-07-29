@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from rest_framework import viewsets, permissions
 from rest_framework.permissions import IsAuthenticated
+from nec_asset_management.settings.base import IsAdminUser, IsFinanceOrAdmin, IsViewerOrAbove
 from .models import CurrentAsset
 from .serializers import CurrentAssetSerializer
 
@@ -8,7 +9,11 @@ from .serializers import CurrentAssetSerializer
 class CurrentAssetViewSet(viewsets.ModelViewSet):
     queryset = CurrentAsset.objects.select_related('category', 'department', 'location', 'status', 'created_by', 'updated_by').all()
     serializer_class = CurrentAssetSerializer
-    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsFinanceOrAdmin()]
+        return [IsViewerOrAbove()]
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user, updated_by=self.request.user)

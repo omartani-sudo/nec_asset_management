@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer, UserCreateSerializer, LoginSerializer
-from rest_framework.permissions import IsAuthenticated
+from nec_asset_management.settings.base import IsAdminUser, IsFinanceOrAdmin, IsViewerOrAbove
 
 User = get_user_model()
 
@@ -13,7 +13,6 @@ User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -22,8 +21,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            return [permissions.AllowAny()]
-        return super().get_permissions()
+            return [IsAdminUser()]
+        if self.action in ['list', 'retrieve']:
+            return [IsViewerOrAbove()]
+        if self.action in ['update', 'partial_update']:
+            return [IsFinanceOrAdmin()]
+        if self.action == 'destroy':
+            return [IsAdminUser()]
+        return [IsViewerOrAbove()]
 
     @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny()])
     def login(self, request):

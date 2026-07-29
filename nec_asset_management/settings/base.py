@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
     'django_extensions',
     'authentication',
@@ -124,8 +125,19 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day',
+    },
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
 }
 
 # Logging configuration
@@ -195,3 +207,26 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='webmaster@localhost')
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
 EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+
+# SimpleJWT configuration
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=12),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+# Custom permissions
+from rest_framework import permissions
+
+class IsAdminUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and getattr(request.user, 'role', None) == 'admin'
+
+class IsFinanceOrAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and getattr(request.user, 'role', None) in ('admin', 'finance')
+
+class IsViewerOrAbove(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and getattr(request.user, 'role', None) in ('admin', 'finance', 'user', 'viewer')
