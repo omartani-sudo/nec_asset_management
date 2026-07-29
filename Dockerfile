@@ -5,6 +5,7 @@ FROM python:3.13-slim AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -47,3 +48,7 @@ RUN python manage.py collectstatic --noinput
 
 # Run with Gunicorn via entrypoint
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD ["curl", "-f", "http://localhost:8000/health/"] || exit 1

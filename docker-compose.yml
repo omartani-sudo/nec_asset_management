@@ -4,7 +4,6 @@ services:
   web:
     build: .
     container_name: nec_asset_management
-    command: gunicorn nec_asset_management.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
     volumes:
       - .:/app
       - media_volume:/app/media

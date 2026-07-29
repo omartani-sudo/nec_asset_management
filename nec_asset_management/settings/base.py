@@ -166,6 +166,7 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # Redis cache configuration
 REDIS_URL = env('REDIS_URL', default='redis://redis:6379/0')

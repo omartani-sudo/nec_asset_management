@@ -32,8 +32,10 @@ def health_check(request):
         })
 
     except Exception as e:
+        from django.conf import settings
+        message = str(e) if settings.DEBUG else 'Service temporarily unavailable'
         return JsonResponse({
             'status': 'error',
-            'message': str(e),
+            'message': message,
             'timestamp': timezone.now().isoformat()
         }, status=500)
