@@ -13,11 +13,11 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_DB: nec_asset_management_test
+          POSTGRES_DB: nec_asset_management
           POSTGRES_USER: nec_user
           POSTGRES_PASSWORD: nec_secure_pass
         options: >-
-          --health-cmd pg_isready
+          --health-cmd pg_isready -U nec_user -D nec_asset_management
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -33,7 +33,7 @@ jobs:
         ports:
           - 6379:6379
     env:
-      DATABASE_URL: postgres://nec_user:nec_secure_pass@localhost:5432/nec_asset_management_test
+      DATABASE_URL: postgres://nec_user:nec_secure_pass@localhost:5432/nec_asset_management
       REDIS_URL: redis://localhost:6379/0
       DJANGO_SECRET_KEY: test-secret-key-for-ci-only
       DJANGO_DEBUG: "False"
