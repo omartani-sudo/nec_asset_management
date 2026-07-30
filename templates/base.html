@@ -51,7 +51,7 @@
                 <i class="bi bi-building"></i> NEC Assets
             </div>
             <div class="list-group list-group-flush">
-                <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <a href="{% url 'dashboard:dashboard' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="bi bi-speedometer2 me-2"></i> Dashboard
                 </a>
                 <a href="{% url 'fixed_assets:fixed_asset_list' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.app_name == 'fixed_assets' %}active{% endif %}">
@@ -102,7 +102,7 @@
             <div class="col-md-4">
                 <div class="card shadow">
                     <div class="card-body p-4">
-                        <h3 class="text-center mb-4"><i class="bi bi-building"></i> NEC Asset Management</h3>
+                        <h5 class="text-center mb-4 text-muted">Sign in to continue</h5>
                         {% block unauthenticated_content %}{% endblock %}
                     </div>
                 </div>

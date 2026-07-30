@@ -15,7 +15,7 @@ def login_view(request):
                 messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
             else:
                 messages.success(request, f'Welcome back, {user.username}!')
-            return redirect('dashboard')
+            return redirect('dashboard:dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
     return render(request, 'authentication/login.html')

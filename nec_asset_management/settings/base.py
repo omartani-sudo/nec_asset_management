@@ -63,7 +63,7 @@ MIDDLEWARE = [
 AUTH_USER_MODEL = 'authentication.User'
 
 LOGIN_URL = 'authentication:login'
-LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_REDIRECT_URL = 'dashboard:dashboard'
 LOGOUT_REDIRECT_URL = 'authentication:login'
 
 ROOT_URLCONF = 'nec_asset_management.urls'
