@@ -2,35 +2,77 @@
 
 A comprehensive, production-ready Asset Management System designed for the National Electoral Commission (NEC). This system digitizes and automates asset management, replacing manual spreadsheets with a dynamic web application and REST API.
 
+**Live deployment:** [https://tournook.com/](https://tournook.com/)
+
+---
+
 ## Features
 
-- **Dashboard**: Real-time KPIs and depreciation trend charts
-- **Fixed Assets Registration**: Full CRUD with auto-depreciation calculations (Straight Line & Reducing Balance)
-- **Current Assets Management**: Track cash, receivables, and prepayments
-- **Inventory Management**: Stock tracking with auto-calculated balance, reorder levels, and status
-- **Reports**: Auto-generated reports by category, department, status, and reorder lists
-- **Lists Management**: Editable dropdown lists (admin only)
-- **Role-Based Access**: Admin, Finance, User, and Viewer roles
-- **REST API**: Full CRUD API with JWT authentication and role-based permissions
-- **Responsive Design**: Works on desktop, tablet, and mobile
+### Core Modules
+- **Dashboard**: Real-time KPIs, depreciation trend charts, and asset summary statistics
+- **Fixed Assets**: Full CRUD with auto-generated asset IDs (e.g., `ITE-DEL-0004`), auto-depreciation calculations (Straight Line & Reducing Balance), depreciation schedules
+- **Current Assets**: Track cash, receivables, and prepayments with departmental allocation
+- **Inventory**: Stock tracking with auto-calculated balance, total value, reorder alerts, and stock status
+- **Reports**: Auto-generated reports by category, department, status, and reorder lists with Excel export
+- **Lists (Reference Data)**: Editable dropdown lists for categories, departments, locations, statuses, and units (admin only)
+
+### User Management
+- **Role-Based Access**: Admin, Finance, User, and Viewer roles with granular permissions
+- **Admin Panel**: Django admin at `/admin/` for user CRUD, role assignment, and full data management
+- **Sidebar Access**: "User Management" link for staff users
+
+### REST API
+- Full CRUD API under `/api/` with JWT authentication
+- Pagination (20 items/page), throttling (100/day anonymous, 1,000/day authenticated)
+- 10+ endpoints covering auth, fixed assets, current assets, inventory, and lists
+
+### Data Import
+- **Excel Import**: Management command `import_nec_excel` for bulk importing NEC asset registers
+- Auto-generates asset IDs, depreciation schedules, and links reference data
+
+---
 
 ## Technology Stack
 
-- **Backend**: Python 3.13, Django 6.0.7, Django REST Framework
-- **API Auth**: JWT via `djangorestframework-simplejwt`
-- **Database**: PostgreSQL 17
-- **Frontend**: Django Templates, Bootstrap 5, JavaScript
-- **Reporting**: Matplotlib, OpenPyXL
-- **Authentication**: Django built-in auth with custom User model
-- **Server**: Gunicorn + WhiteNoise
-- **Caching**: Redis
-- **Containerization**: Docker & Docker Compose
-- **CI/CD**: GitHub Actions
+| Component | Technology |
+|-----------|-----------|
+| Backend | Python 3.13, Django 6.0.7, Django REST Framework |
+| API Auth | JWT via `djangorestframework-simplejwt` |
+| Database | PostgreSQL 17 |
+| Frontend | Django Templates, Bootstrap 5, Bootstrap Icons |
+| Reporting | Matplotlib, OpenPyXL, Pandas |
+| Server | Gunicorn + WhiteNoise |
+| Caching | Redis 7 |
+| Reverse Proxy | Traefik v3.6 with Let's Encrypt SSL |
+| Containerization | Docker & Docker Compose |
+| CI/CD | GitHub Actions |
+
+---
+
+## Database Schema
+
+19 tables across 7 Django apps:
+
+| App | Tables | Key Models |
+|-----|--------|-----------|
+| `authentication` | 1 | Custom User with roles, phone, department FK |
+| `fixed_assets` | 2 | FixedAsset (22 columns), DepreciationSchedule |
+| `current_assets` | 1 | CurrentAsset with category/department/location FKs |
+| `inventory` | 1 | InventoryItem with auto-balance and stock status |
+| `lists` | 5 | Category, Department, Location, Status, Unit |
+| `auth` (Django) | 6 | Groups, Permissions, Sessions, Admin log |
+
+**Indexes:** 8 indexes on FixedAsset for query performance (asset_id, category, department, location, status, purchase_date, condition, assigned_to).
+
+**Depreciation:** Auto-generated year-by-year schedules with opening NBV, annual depreciation, accumulated depreciation, and closing NBV for both Straight Line (SL) and Reducing Balance (RB) methods.
+
+**Audit Trail:** All models include `created_at`, `updated_at`, `created_by`, `updated_by` fields.
+
+---
 
 ## Quick Start
 
 ### Prerequisites
-
 - Docker & Docker Compose
 - Python 3.13+ (for local development without Docker)
 
@@ -42,41 +84,35 @@ A comprehensive, production-ready Asset Management System designed for the Natio
    cd nec_asset_management
    ```
 
-2. **Copy environment file:**
+2. **Set up environment:**
    ```bash
    cp .env.example .env
+   # Edit .env with your settings
    ```
 
-3. **Edit `.env` with your settings:**
-   ```env
-   DJANGO_SECRET_KEY=your-secret-key-here
-   DJANGO_DEBUG=False
-   DATABASE_URL=postgres://nec_user:nec_secure_pass@db:5432/nec_asset_management
-   REDIS_URL=redis://redis:6379/0
-   ```
-
-4. **Start with Docker Compose:**
+3. **Start with Docker Compose:**
    ```bash
    docker-compose up -d
    ```
 
-5. **Run migrations:**
+4. **Run migrations & create superuser:**
    ```bash
    docker-compose exec web python manage.py migrate
-   ```
-
-6. **Create superuser:**
-   ```bash
    docker-compose exec web python manage.py createsuperuser
    ```
 
-7. **Access the application:**
-   - Open browser to `http://localhost:8000/`
-   - Log in with superuser credentials
+5. **Import Excel data (optional):**
+   ```bash
+   docker-compose exec web python manage.py import_nec_excel /app/NEC_Asset_Registration.xlsx
+   ```
+
+6. **Access the application:**
+   - App: `http://localhost:8000/`
+   - Admin: `http://localhost:8000/admin/`
+
+---
 
 ## REST API
-
-The application exposes a full REST API under `/api/`. All API endpoints require authentication unless noted.
 
 ### Authentication
 
@@ -86,8 +122,7 @@ The application exposes a full REST API under `/api/`. All API endpoints require
 | POST | `/api/auth/login/refresh/` | Refresh access token |
 | POST | `/api/auth/logout/` | Logout current session |
 
-### Example: Login
-
+**Example:**
 ```bash
 curl -X POST http://localhost:8000/api/auth/login/ \
   -H "Content-Type: application/json" \
@@ -102,20 +137,11 @@ Response:
 }
 ```
 
-### Using the API
-
-Include the access token in the `Authorization` header:
-
-```bash
-curl http://localhost:8000/api/fixed-assets/fixed-assets/ \
-  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOi..."
-```
-
 ### Endpoints
 
 | Method | Endpoint | Access |
 |--------|----------|--------|
-| GET/POST | `/api/auth/users/` | Admin create, all authenticated read |
+| GET/POST | `/api/auth/users/` | Admin write, all authenticated read |
 | GET/POST | `/api/fixed-assets/fixed-assets/` | Finance/Admin write, all authenticated read |
 | GET | `/api/fixed-assets/depreciation-schedules/` | All authenticated read |
 | GET/POST | `/api/current-assets/current-assets/` | Finance/Admin write, all authenticated read |
@@ -128,16 +154,26 @@ curl http://localhost:8000/api/fixed-assets/fixed-assets/ \
 
 ### API Permissions
 
-- **Admin**: Full access to all endpoints
-- **Finance**: Can create/update fixed assets, current assets, inventory items; read-only for lists
-- **User**: Read-only access to assets and inventory
-- **Viewer**: Read-only access to assets and inventory
+| Role | Permissions |
+|------|------------|
+| **Admin** | Full access to all endpoints |
+| **Finance** | Create/update fixed assets, current assets, inventory; read-only for lists |
+| **User** | Read-only access to assets and inventory |
+| **Viewer** | Read-only access to assets and inventory |
 
-### Pagination & Throttling
+---
 
-- Page size: 20 items per page
-- Anonymous rate limit: 100 requests/day
-- Authenticated rate limit: 1,000 requests/day
+## Management Commands
+
+| Command | Description |
+|---------|-------------|
+| `python manage.py import_nec_excel <file.xlsx>` | Import assets & lists from NEC Excel register |
+| `python manage.py shell` | Django interactive shell |
+| `python manage.py createsuperuser` | Create admin user |
+| `python manage.py migrate` | Apply database migrations |
+| `python manage.py collectstatic --noinput` | Collect static files |
+
+---
 
 ## Docker Commands
 
@@ -157,133 +193,83 @@ docker-compose exec web python manage.py migrate
 # Create superuser
 docker-compose exec web python manage.py createsuperuser
 
-# Collect static files
-docker-compose exec web python manage.py collectstatic --noinput
+# Import Excel data
+docker-compose exec web python manage.py import_nec_excel /app/NEC_Asset_Registration.xlsx
 
-# Open Django shell
-docker-compose exec web python manage.py shell
-```
-
-## Coolify Deployment
-
-### Build Command
-```bash
-docker-compose build web
-```
-
-### Start Command
-```bash
-docker-compose up -d web
-```
-
-### Health Check URL
-```
-http://localhost:8000/health/
-```
-
-### Environment Variables for Coolify
-
-Set these in Coolify's environment variables section:
-
-```env
-DJANGO_SECRET_KEY=your-production-secret-key-here
-DJANGO_DEBUG=False
-DJANGO_ALLOWED_HOSTS=your-domain.com,www.your-domain.com
-DATABASE_URL=postgres://nec_user:nec_secure_pass@db:5432/nec_asset_management
-REDIS_URL=redis://redis:6379/0
-SECURE_SSL_REDIRECT=True
-SESSION_COOKIE_SECURE=True
-CSRF_COOKIE_SECURE=True
-CSRF_TRUSTED_ORIGINS=https://your-domain.com,https://www.your-domain.com
-CORS_ALLOWED_ORIGINS=https://your-domain.com,https://www.your-domain.com
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-app-password
-DEFAULT_FROM_EMAIL=noreply@nec.gov
-EMAIL_USE_TLS=True
-```
-
-## Production Settings
-
-### Security
-
-- `DEBUG=False`
-- `SECURE_SSL_REDIRECT=True`
-- `SESSION_COOKIE_SECURE=True`
-- `CSRF_COOKIE_SECURE=True`
-- `SECURE_HSTS_SECONDS=31536000`
-- `SECURE_HSTS_INCLUDE_SUBDOMAINS=True`
-- `SECURE_HSTS_PRELOAD=True`
-- `X_FRAME_OPTIONS=DENY`
-- `SECURE_CONTENT_TYPE_NOSNIFF=True`
-- `SECURE_BROWSER_XSS_FILTER=True`
-- `SECURE_REFERRER_POLICY=strict-origin-when-cross-origin`
-
-### Static Files
-
-WhiteNoise serves static files efficiently without requiring Nginx:
-
-```bash
-python manage.py collectstatic
-```
-
-Static files are collected to `/app/staticfiles/` in the container.
-
-### Media Files
-
-Media files are stored in `/app/media/` and should be persisted using Docker volumes.
-
-## Testing
-
-### Run Tests Locally
-
-```bash
-# Using Django test runner (requires PostgreSQL running)
-python manage.py test
-
-# Using pytest with SQLite
-pytest
-```
-
-### Test Coverage
-
-- Health check endpoint validation
-- JWT login/logout flow
-- Permission enforcement (admin vs user)
-- CRUD operations on fixed assets
-
-### CI/CD
-
-GitHub Actions runs on every push and pull request to `main`:
-
-1. **Validate**: `check`, `migrate`, `collectstatic`, `test`
-2. **Docker**: Build image and verify
-3. **Push**: Push to GitHub Container Registry (GHCR) on main branch
-
-## Database
-
-### PostgreSQL Backup
-
-```bash
-# Backup
+# Database backup
 docker-compose exec db pg_dump -U nec_user nec_asset_management > backup.sql
 
-# Restore
+# Database restore
 docker-compose exec -T db psql -U nec_user nec_asset_management < backup.sql
 ```
 
-### Media Backup
+---
 
-```bash
-# Backup media volume
-docker run --rm -v nec_asset_management_media_volume:/data -v $(pwd):/backup alpine tar cvf /backup/media_backup.tar -C /data .
+## Deployment
+
+### Production Environment Variables
+
+```env
+DJANGO_SECRET_KEY=your-production-secret-key
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=your-domain.com,www.your-domain.com
+DATABASE_URL=postgres://nec_user:password@db:5432/nec_asset_management
+REDIS_URL=redis://:password@redis:6379/0
+SECURE_SSL_REDIRECT=True
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+SECURE_HSTS_SECONDS=31536000
+CSRF_TRUSTED_ORIGINS=https://your-domain.com
+CORS_ALLOWED_ORIGINS=https://your-domain.com
 ```
 
-## Health Check
+### Security Features
 
-The application provides a health check endpoint:
+| Feature | Status |
+|---------|--------|
+| SSL/TLS (Let's Encrypt) | ✅ |
+| HTTP→HTTPS Redirect | ✅ |
+| HSTS (max-age=31536000) | ✅ |
+| X-Frame-Options: DENY | ✅ |
+| X-Content-Type-Options: nosniff | ✅ |
+| Referrer-Policy | ✅ strict-origin-when-cross-origin |
+| CSRF Protection | ✅ |
+| Session Cookie Secure + HttpOnly | ✅ |
+| JWT Token Auth | ✅ |
+
+---
+
+## Project Structure
+
+```
+nec_asset_management/
+├── nec_asset_management/     # Django project settings
+│   └── settings/
+│       ├── base.py           # Base settings
+│       ├── development.py    # Dev overrides
+│       ├── production.py     # Production overrides
+│       └── test.py           # Test overrides
+├── authentication/           # Custom user model & auth views
+├── fixed_assets/             # Fixed asset CRUD + depreciation
+├── current_assets/           # Current asset tracking
+├── inventory/                # Inventory management
+├── lists/                    # Reference data (categories, etc.)
+├── reports/                  # Auto-generated reports
+├── dashboard/                # KPI dashboard
+├── core/                     # Health check, context processors
+│   └── management/commands/  # Custom management commands
+├── templates/                # Django templates
+├── static/                   # CSS, JS, images
+├── tests/                    # Test suite
+├── Dockerfile                # Multi-stage Docker build
+├── docker-compose.yml        # Docker Compose config
+├── docker-entrypoint.sh      # Container entrypoint
+└── requirements.txt          # Python dependencies
+```
+
+---
+
+## Health Check
 
 ```
 GET /health/
@@ -296,179 +282,15 @@ Response:
     "message": "All systems operational",
     "database": "connected",
     "migrations": "applied",
-    "timestamp": "2026-07-29T00:00:00Z"
+    "timestamp": "2026-07-30T00:00:00Z"
 }
 ```
 
-HTTP Status Codes:
-- `200 OK`: All systems operational
-- `500 Internal Server Error`: Database or migration issues
-
-## Logging
-
-Logs are output to stdout/stderr for Docker containers:
-
-```bash
-# View logs
-docker-compose logs -f web
-docker-compose logs -f db
-docker-compose logs -f redis
-```
-
-Log levels:
-- INFO: General application flow
-- WARNING: Django warnings
-- ERROR: Application errors
-
-## Project Structure
-
-```
-nec_asset_management/
-├── nec_asset_management/
-│   ├── settings/
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   ├── development.py
-│   │   ├── production.py
-│   │   └── test.py
-│   ├── urls.py
-│   ├── wsgi.py
-│   └── asgi.py
-├── authentication/
-│   ├── api_urls.py
-│   ├── api_views.py
-│   ├── serializers.py
-│   ├── views.py
-│   ├── models.py
-│   └── urls.py
-├── fixed_assets/
-│   ├── api_urls.py
-│   ├── api_views.py
-│   ├── serializers.py
-│   ├── views.py
-│   ├── models.py
-│   └── urls.py
-├── current_assets/
-│   ├── api_urls.py
-│   ├── api_views.py
-│   ├── serializers.py
-│   ├── views.py
-│   ├── models.py
-│   └── urls.py
-├── inventory/
-│   ├── api_urls.py
-│   ├── api_views.py
-│   ├── serializers.py
-│   ├── views.py
-│   ├── models.py
-│   └── urls.py
-├── lists/
-│   ├── api_urls.py
-│   ├── api_views.py
-│   ├── serializers.py
-│   ├── views.py
-│   ├── models.py
-│   └── urls.py
-├── reports/
-├── dashboard/
-├── core/
-├── templates/
-├── static/
-├── media/
-├── tests/
-├── Dockerfile
-├── docker-compose.yml
-├── .dockerignore
-├── .env.example
-├── requirements.txt
-└── manage.py
-```
-
-## Environment Variables
-
-See `.env.example` for all available environment variables.
-
-### Required for Production
-
-- `DJANGO_SECRET_KEY`: Django secret key (keep secure!)
-- `DATABASE_URL`: PostgreSQL database URL
-- `DJANGO_ALLOWED_HOSTS`: Comma-separated list of allowed hosts
-- `SECURE_SSL_REDIRECT`: Set to `True` in production
-- `SESSION_COOKIE_SECURE`: Set to `True` in production
-- `CSRF_COOKIE_SECURE`: Set to `True` in production
-- `CORS_ALLOWED_ORIGINS`: Comma-separated list of allowed CORS origins
-- `CSRF_TRUSTED_ORIGINS`: Comma-separated list of trusted origins for CSRF
-
-## Troubleshooting
-
-### Database Connection Issues
-
-```bash
-# Check if PostgreSQL is running
-docker-compose ps db
-
-# Check PostgreSQL logs
-docker-compose logs db
-
-# Test connection
-docker-compose exec web python manage.py shell -c "from django.db import connection; print(connection.ensure_connection())"
-```
-
-### Static Files Not Loading
-
-```bash
-# Recollect static files
-docker-compose exec web python manage.py collectstatic --noinput --clear
-
-# Check WhiteNoise is enabled
-docker-compose exec web python manage.py shell -c "from django.conf import settings; print(settings.STATICFILES_STORAGE)"
-```
-
-### Migration Issues
-
-```bash
-# Check migration status
-docker-compose exec web python manage.py showmigrations
-
-# Apply migrations
-docker-compose exec web python manage.py migrate
-
-# Fake migrations if needed
-docker-compose exec web python manage.py migrate --fake
-```
-
-### Permission Issues
-
-```bash
-# Fix media directory permissions
-docker-compose exec web chown -R django:django /app/media
-```
-
-## Management Commands
-
-```bash
-# Django shell
-python manage.py shell
-
-# Create superuser
-python manage.py createsuperuser
-
-# Run migrations
-python manage.py migrate
-
-# Collect static files
-python manage.py collectstatic --noinput
-
-# Check system
-python manage.py check
-
-# Show URLs
-python manage.py show_urls
-```
+---
 
 ## License
 
-Proprietary - National Electoral Commission (NEC)
+Proprietary — National Electoral Commission (NEC)
 
 ## Support
 
