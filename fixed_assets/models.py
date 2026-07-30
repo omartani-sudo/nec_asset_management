@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import date
+from dateutil.relativedelta import relativedelta
 import math
 
 User = get_user_model()
@@ -53,6 +54,16 @@ class FixedAsset(models.Model):
 
     class Meta:
         ordering = ['-purchase_date', 'asset_id']
+        indexes = [
+            models.Index(fields=['asset_id']),
+            models.Index(fields=['category']),
+            models.Index(fields=['department']),
+            models.Index(fields=['location']),
+            models.Index(fields=['status']),
+            models.Index(fields=['purchase_date']),
+            models.Index(fields=['condition']),
+            models.Index(fields=['assigned_to']),
+        ]
 
     def __str__(self):
         return f"{self.asset_id} - {self.asset_name}"
@@ -98,10 +109,53 @@ class FixedAsset(models.Model):
         seq = str(last + 1).zfill(4)
         return f"{prefix}-{name_part}-{seq}"
 
+    def generate_schedules(self):
+        """Generate depreciation schedules for the asset's useful life."""
+        from datetime import date
+        from dateutil.relativedelta import relativedelta
+
+        # Clear existing schedules
+        self.depreciation_schedules.all().delete()
+
+        cost = Decimal(str(self.purchase_cost))
+        salvage = Decimal(str(self.salvage_value))
+        opening_nbv = cost
+        accumulated = Decimal('0')
+
+        for year in range(1, self.useful_life + 1):
+            start = self.purchase_date + relativedelta(years=year - 1)
+            end = self.purchase_date + relativedelta(years=year) - relativedelta(days=1)
+
+            if self.depreciation_method == 'SL':
+                annual = (cost - salvage) / self.useful_life
+            else:
+                annual = (opening_nbv - salvage) * (Decimal('2') / self.useful_life)
+                if opening_nbv - annual < salvage:
+                    annual = opening_nbv - salvage
+
+            accumulated += annual
+            closing_nbv = opening_nbv - annual
+
+            DepreciationSchedule.objects.create(
+                asset=self,
+                year_number=year,
+                start_date=start,
+                end_date=end,
+                opening_nbv=opening_nbv.quantize(Decimal('0.01')),
+                annual_depreciation=annual.quantize(Decimal('0.01')),
+                accumulated_depreciation=accumulated.quantize(Decimal('0.01')),
+                closing_nbv=max(closing_nbv, salvage).quantize(Decimal('0.01')),
+            )
+
+            opening_nbv = closing_nbv
+
     def save(self, *args, **kwargs):
         if not self.asset_id:
             self.asset_id = self.generate_asset_id()
+        is_new = self.pk is None
         super().save(*args, **kwargs)
+        if is_new:
+            self.generate_schedules()
 
 class DepreciationSchedule(models.Model):
     asset = models.ForeignKey(FixedAsset, on_delete=models.CASCADE, related_name='depreciation_schedules')
