@@ -22,6 +22,11 @@ FROM python:3.13-slim
 # Build arg for collectstatic — real key must be set at runtime via env
 ARG DJANGO_SECRET_KEY=build-time-key-not-for-runtime
 
+# Install curl for health check (not inherited from builder stage)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create non-root user
 RUN groupadd -r django && useradd -r -g django django
 
