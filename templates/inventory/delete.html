@@ -7,7 +7,9 @@
 </div>
 <form method="post">
     {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Yes, Delete</button>
-    <a href="{% url 'inventory:inventory_list' %}" class="btn btn-secondary">Cancel</a>
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'inventory:inventory_list' %}" class="btn btn-secondary">Cancel</a>
+    </div>
 </form>
 {% endblock %}

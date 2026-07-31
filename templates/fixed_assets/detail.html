@@ -5,22 +5,22 @@
 <div class="card mb-4">
     <div class="card-body">
         <div class="row">
-            <div class="col-md-6"><strong>Name:</strong> {{ asset.asset_name }}</div>
-            <div class="col-md-6"><strong>Category:</strong> {{ asset.category.name }}</div>
-            <div class="col-md-6"><strong>Department:</strong> {{ asset.department.name }}</div>
-            <div class="col-md-6"><strong>Location:</strong> {{ asset.location.name }}</div>
-            <div class="col-md-6"><strong>Serial Number:</strong> {{ asset.serial_number }}</div>
-            <div class="col-md-6"><strong>Supplier:</strong> {{ asset.supplier }}</div>
-            <div class="col-md-6"><strong>Purchase Date:</strong> {{ asset.purchase_date }}</div>
-            <div class="col-md-6"><strong>Purchase Cost:</strong> {{ asset.purchase_cost|floatformat:2 }}</div>
-            <div class="col-md-6"><strong>Useful Life:</strong> {{ asset.useful_life }} years</div>
-            <div class="col-md-6"><strong>Salvage Value:</strong> {{ asset.salvage_value|floatformat:2 }}</div>
-            <div class="col-md-6"><strong>Depreciation Method:</strong> {{ asset.get_depreciation_method_display }}</div>
-            <div class="col-md-6"><strong>Status:</strong> {{ asset.status.name }}</div>
-            <div class="col-md-6"><strong>Condition:</strong> {{ asset.get_condition_display }}</div>
-            <div class="col-md-6"><strong>Annual Depreciation:</strong> {{ asset.annual_depreciation|floatformat:2 }}</div>
-            <div class="col-md-6"><strong>Accum. Depreciation:</strong> {{ asset.accumulated_depreciation|floatformat:2 }}</div>
-            <div class="col-md-6"><strong>Net Book Value:</strong> {{ asset.net_book_value|floatformat:2 }}</div>
+            <div class="col-12 col-sm-6"><strong>Name:</strong> {{ asset.asset_name }}</div>
+            <div class="col-12 col-sm-6"><strong>Category:</strong> {{ asset.category.name }}</div>
+            <div class="col-12 col-sm-6"><strong>Department:</strong> {{ asset.department.name }}</div>
+            <div class="col-12 col-sm-6"><strong>Location:</strong> {{ asset.location.name }}</div>
+            <div class="col-12 col-sm-6"><strong>Serial Number:</strong> {{ asset.serial_number }}</div>
+            <div class="col-12 col-sm-6"><strong>Supplier:</strong> {{ asset.supplier }}</div>
+            <div class="col-12 col-sm-6"><strong>Purchase Date:</strong> {{ asset.purchase_date }}</div>
+            <div class="col-12 col-sm-6"><strong>Purchase Cost:</strong> {{ asset.purchase_cost|floatformat:2 }}</div>
+            <div class="col-12 col-sm-6"><strong>Useful Life:</strong> {{ asset.useful_life }} years</div>
+            <div class="col-12 col-sm-6"><strong>Salvage Value:</strong> {{ asset.salvage_value|floatformat:2 }}</div>
+            <div class="col-12 col-sm-6"><strong>Depreciation Method:</strong> {{ asset.get_depreciation_method_display }}</div>
+            <div class="col-12 col-sm-6"><strong>Status:</strong> {{ asset.status.name }}</div>
+            <div class="col-12 col-sm-6"><strong>Condition:</strong> {{ asset.get_condition_display }}</div>
+            <div class="col-12 col-sm-6"><strong>Annual Depreciation:</strong> {{ asset.annual_depreciation|floatformat:2 }}</div>
+            <div class="col-12 col-sm-6"><strong>Accum. Depreciation:</strong> {{ asset.accumulated_depreciation|floatformat:2 }}</div>
+            <div class="col-12 col-sm-6"><strong>Net Book Value:</strong> {{ asset.net_book_value|floatformat:2 }}</div>
         </div>
     </div>
 </div>
