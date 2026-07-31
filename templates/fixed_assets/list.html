@@ -25,15 +25,15 @@
                 <tbody>
                     {% for asset in assets %}
                     <tr>
-                        <td>{{ asset.asset_id }}</td>
-                        <td>{{ asset.asset_name }}</td>
-                        <td>{{ asset.category.name }}</td>
-                        <td>{{ asset.department.name }}</td>
-                        <td>{{ asset.purchase_date }}</td>
-                        <td>{{ asset.purchase_cost|floatformat:2 }}</td>
-                        <td>{{ asset.net_book_value|floatformat:2 }}</td>
-                        <td>{{ asset.status.name }}</td>
-                        <td>
+                        <td data-label="Asset ID">{{ asset.asset_id }}</td>
+                        <td data-label="Name">{{ asset.asset_name }}</td>
+                        <td data-label="Category">{{ asset.category.name }}</td>
+                        <td data-label="Department">{{ asset.department.name }}</td>
+                        <td data-label="Purchase Date">{{ asset.purchase_date }}</td>
+                        <td data-label="Purchase Cost">{{ asset.purchase_cost|floatformat:2 }}</td>
+                        <td data-label="NBV">{{ asset.net_book_value|floatformat:2 }}</td>
+                        <td data-label="Status">{{ asset.status.name }}</td>
+                        <td data-label="Actions">
                             <a href="{% url 'fixed_assets:fixed_asset_detail' asset.pk %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
                             <a href="{% url 'fixed_assets:fixed_asset_update' asset.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
                             <a href="{% url 'fixed_assets:fixed_asset_delete' asset.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>

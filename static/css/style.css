@@ -191,26 +191,104 @@
     }
 }
 
-/* ---- Tables --------------------------------------------------------- */
+/* ---- Tables — Stacked Cards on Mobile (≤767px) --------------------- */
 @media (max-width: 767.98px) {
-    .table-responsive table {
-        font-size: 0.8rem;
+    /* Allow cards to overflow container naturally */
+    .table-responsive {
+        overflow-x: visible !important;
     }
-    .table-responsive .btn-sm {
-        padding: 0.2rem 0.35rem;
-        font-size: 0.7rem;
-    }
+
+    /* Convert table elements to block */
+    .table-responsive table,
+    .table-responsive thead,
+    .table-responsive tbody,
     .table-responsive th,
+    .table-responsive td,
+    .table-responsive tr {
+        display: block;
+    }
+
+    /* Hide desktop column headers */
+    .table-responsive thead tr {
+        display: none;
+    }
+
+    /* Each row becomes a card */
+    .table-responsive tbody tr {
+        margin-bottom: 0.85rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background: #fff;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+
+    /* Restore stripe on odd rows */
+    .table-striped > tbody > tr:nth-of-type(odd) {
+        background-color: rgba(0,0,0,0.02);
+    }
+
+    /* Each cell: label on left, value on right */
     .table-responsive td {
-        white-space: nowrap;
-        padding: 0.4rem 0.35rem;
+        display: flex !important;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.4rem 0;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+        white-space: normal !important;
+        font-size: 0.88rem;
+        text-align: right;
+        gap: 0.5rem;
     }
-    /* Make action column more compact */
+
     .table-responsive td:last-child {
-        white-space: nowrap;
+        border-bottom: none;
     }
-    .table-responsive td:last-child .btn {
-        margin-bottom: 2px;
+
+    /* Pseudo-element label from data-label attribute */
+    .table-responsive td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #495057;
+        text-align: left;
+        flex-shrink: 0;
+        min-width: 38%;
+        max-width: 42%;
+    }
+
+    /* Empty row: center the message, no label */
+    .table-responsive td[colspan] {
+        justify-content: center;
+        text-align: center;
+        padding: 1rem 0;
+        font-style: italic;
+        color: #6c757d;
+    }
+    .table-responsive td[colspan]::before {
+        display: none;
+    }
+
+    /* Action column: right-align buttons, no label, proper tap targets */
+    .table-responsive td:last-child:not([colspan]) {
+        justify-content: flex-end;
+        gap: 0.4rem;
+        padding-top: 0.55rem;
+        margin-top: 0.2rem;
+        border-top: 1px solid #dee2e6;
+        border-bottom: none;
+    }
+    .table-responsive td:last-child:not([colspan])::before {
+        display: none;
+    }
+    .table-responsive td:last-child .btn-sm {
+        padding: 0.4rem 0.65rem;
+        font-size: 0.82rem;
+    }
+
+    /* Status badges: keep compact */
+    .table-responsive td .badge {
+        font-size: 0.8rem;
     }
 }
 

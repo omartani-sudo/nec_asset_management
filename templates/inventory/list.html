@@ -16,17 +16,17 @@
                 <tbody>
                 {% for item in items %}
                 <tr>
-                    <td>{{ item.item_code }}</td>
-                    <td>{{ item.description }}</td>
-                    <td>{{ item.category.name }}</td>
-                    <td>{{ item.unit.name }}</td>
-                    <td>{{ item.opening_stock }}</td>
-                    <td>{{ item.received_qty }}</td>
-                    <td>{{ item.issued_qty }}</td>
-                    <td>{{ item.balance_qty }}</td>
-                    <td>{{ item.unit_cost|floatformat:2 }}</td>
-                    <td>{{ item.total_value|floatformat:2 }}</td>
-                    <td>
+                    <td data-label="Item Code">{{ item.item_code }}</td>
+                    <td data-label="Description">{{ item.description }}</td>
+                    <td data-label="Category">{{ item.category.name }}</td>
+                    <td data-label="Unit">{{ item.unit.name }}</td>
+                    <td data-label="Opening">{{ item.opening_stock }}</td>
+                    <td data-label="Received">{{ item.received_qty }}</td>
+                    <td data-label="Issued">{{ item.issued_qty }}</td>
+                    <td data-label="Balance">{{ item.balance_qty }}</td>
+                    <td data-label="Unit Cost">{{ item.unit_cost|floatformat:2 }}</td>
+                    <td data-label="Total">{{ item.total_value|floatformat:2 }}</td>
+                    <td data-label="Status">
                         {% if item.stock_status == 'Out of Stock' %}<span class="badge bg-danger">{{ item.stock_status }}</span>
                         {% elif item.stock_status == 'Reorder Needed' %}<span class="badge bg-warning text-dark">{{ item.stock_status }}</span>
                         {% else %}<span class="badge bg-success">{{ item.stock_status }}</span>{% endif %}

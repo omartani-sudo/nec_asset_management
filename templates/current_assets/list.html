@@ -12,7 +12,7 @@
                 <thead><tr><th>Asset ID</th><th>Description</th><th>Category</th><th>Department</th><th>Date</th><th>Value</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
                 {% for asset in assets %}
-                <tr><td>{{ asset.asset_id }}</td><td>{{ asset.description }}</td><td>{{ asset.category.name }}</td><td>{{ asset.department.name }}</td><td>{{ asset.date_recorded }}</td><td>{{ asset.value|floatformat:2 }}</td><td>{{ asset.status.name }}</td><td>
+                <tr><td data-label="Asset ID">{{ asset.asset_id }}</td><td data-label="Description">{{ asset.description }}</td><td data-label="Category">{{ asset.category.name }}</td><td data-label="Department">{{ asset.department.name }}</td><td data-label="Date">{{ asset.date_recorded }}</td><td data-label="Value">{{ asset.value|floatformat:2 }}</td><td data-label="Status">{{ asset.status.name }}</td><td data-label="Actions">
                     <a href="{% url 'current_assets:current_asset_update' asset.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
                     <a href="{% url 'current_assets:current_asset_delete' asset.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
                 </td></tr>
