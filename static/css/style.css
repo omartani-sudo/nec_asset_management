@@ -252,9 +252,28 @@
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
-    form .btn {
+    /* Only target form-level buttons, not buttons inside modals */
+    .card form > .d-grid > .btn,
+    .card form > .d-grid > a.btn,
+    form > button.btn,
+    form > a.btn,
+    .alert + form > .d-grid > .btn,
+    .alert + form > .d-grid > a.btn {
         width: 100%;
         margin-bottom: 0.35rem;
+    }
+    /* Ensure d-grid buttons don't double-stack margins */
+    form > .d-grid > .btn:last-child,
+    form > .d-grid > a.btn:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* ---- Sidebar mobile tweaks ------------------------------------------ */
+@media (max-width: 991.98px) {
+    /* Push sidebar content below header area on mobile */
+    #sidebar-wrapper {
+        padding-top: 60px;
     }
 }
 
