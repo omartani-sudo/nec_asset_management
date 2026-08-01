@@ -3,9 +3,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum, Count
+from django.http import JsonResponse
 from .models import FixedAsset, DepreciationSchedule
 from lists.models import Category, Department, Location, Status
-from .forms import FixedAssetForm
+from .forms import FixedAssetForm, ExcelUploadForm
 
 @login_required
 def fixed_asset_list(request):
@@ -21,13 +22,16 @@ def fixed_asset_create(request):
             asset.created_by = request.user
             asset.updated_by = request.user
             asset.save()
-            asset.generate_asset_id()
-            asset.save(update_fields=['asset_id'])
-            messages.success(request, 'Fixed asset created successfully.')
+            messages.success(request, f'Fixed asset "{asset.asset_id}" created successfully.')
             return redirect('fixed_assets:fixed_asset_list')
     else:
         form = FixedAssetForm()
-    return render(request, 'fixed_assets/form.html', {'form': form, 'title': 'Add Fixed Asset'})
+    next_serial = FixedAsset.objects.count() + 1
+    return render(request, 'fixed_assets/form.html', {
+        'form': form,
+        'title': 'Add Fixed Asset',
+        'next_serial': next_serial,
+    })
 
 @login_required
 def fixed_asset_update(request, pk):
@@ -42,7 +46,11 @@ def fixed_asset_update(request, pk):
             return redirect('fixed_assets:fixed_asset_list')
     else:
         form = FixedAssetForm(instance=asset)
-    return render(request, 'fixed_assets/form.html', {'form': form, 'title': 'Edit Fixed Asset'})
+    return render(request, 'fixed_assets/form.html', {
+        'form': form,
+        'title': 'Edit Fixed Asset',
+        'asset_id': asset.asset_id,
+    })
 
 @login_required
 def fixed_asset_detail(request, pk):
@@ -71,3 +79,44 @@ def fixed_assets_by_department(request):
     data = FixedAsset.objects.values('department__name').annotate(count=Count('id'), total_cost=Sum('purchase_cost'), total_nbv=Sum('purchase_cost'))
     context = {'data': data, 'title': 'Fixed Assets by Department'}
     return render(request, 'reports/fixed_assets_summary.html', context)
+
+
+@login_required
+def upload_excel(request):
+    from core.excel_importer import import_lists, import_fixed_assets
+
+    if request.method == 'POST':
+        form = ExcelUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            excel_file = request.FILES['excel_file']
+            try:
+                lists_result = import_lists(excel_file)
+                excel_file.seek(0)  # reset for second read
+                assets_result = import_fixed_assets(excel_file)
+
+                imported = assets_result.get('imported', 0)
+                skipped = assets_result.get('skipped', 0)
+                errors = assets_result.get('errors', [])
+
+                messages.success(
+                    request,
+                    f'Import complete! {imported} fixed assets imported, {skipped} skipped.'
+                )
+                # Show first few errors
+                for aid, name, err in errors[:5]:
+                    messages.warning(request, f'Failed: {aid} - {name}: {err}')
+
+                return redirect('fixed_assets:fixed_asset_list')
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.exception('Excel import failed for user %s', request.user.username)
+                messages.error(request, 'Import failed due to an internal error. Please check that the file is a valid NEC Asset Registration Excel file.')
+                return redirect('fixed_assets:upload_excel')
+    else:
+        form = ExcelUploadForm()
+
+    return render(request, 'fixed_assets/upload_excel.html', {
+        'form': form,
+        'title': 'Import Excel Data',
+    })

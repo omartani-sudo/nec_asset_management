@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import get_user_model
-from .serializers import UserSerializer, UserCreateSerializer, LoginSerializer
+from .serializers import UserSerializer, UserCreateSerializer, LoginSerializer, ChangePasswordSerializer
 from nec_asset_management.settings.base import IsAdminUser, IsFinanceOrAdmin, IsViewerOrAbove
 
 User = get_user_model()
@@ -44,3 +44,12 @@ class UserViewSet(viewsets.ModelViewSet):
     def logout(self, request):
         logout(request)
         return Response({'status': 'ok', 'message': 'Logged out'})
+
+    @action(detail=False, methods=['post'])
+    def change_password(self, request):
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        return Response({'status': 'ok', 'message': 'Password changed successfully.'})

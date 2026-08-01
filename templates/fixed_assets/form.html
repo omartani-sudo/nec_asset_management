@@ -2,20 +2,172 @@
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
 <h2>{{ title }}</h2>
+
+{% if asset_id %}
+<!-- Asset ID display (edit mode) -->
+<div class="alert alert-info mb-3">
+    <strong><i class="bi bi-tag"></i> Asset ID:</strong>
+    <span class="fw-bold">{{ asset_id }}</span>
+    <small class="text-muted ms-2">(auto-generated)</small>
+</div>
+{% else %}
+<!-- Asset ID preview (create mode) -->
+<div class="alert alert-info mb-3">
+    <strong><i class="bi bi-tag"></i> Asset ID Preview:</strong>
+    <span id="asset-id-preview" class="text-muted">Select category and enter asset name to preview...</span>
+    <small class="text-muted ms-2">(auto-generated on save)</small>
+</div>
+{% endif %}
+
+{% if next_serial %}
+<!-- Sequential item counter -->
+<div class="alert alert-secondary mb-3">
+    <strong><i class="bi bi-hash"></i> Item #{{ next_serial }}</strong>
+    <small class="text-muted ms-2">({{ next_serial|add:"-1" }} items currently in the registry)</small>
+</div>
+{% endif %}
+
 <div class="card">
     <div class="card-body">
-        <form method="post">
+        <form method="post" id="asset-form">
             {% csrf_token %}
             <div class="row">
-                {% for field in form %}
+                <!-- Asset Name -->
                 <div class="col-12 col-sm-6 mb-3">
-                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}<small class="form-text text-muted">{{ field.help_text }}</small>{% endif %}
-                    {% if field.errors %}<div class="alert alert-danger">{{ field.errors }}</div>{% endif %}
+                    <label for="{{ form.asset_name.id_for_label }}" class="form-label">{{ form.asset_name.label }}</label>
+                    {{ form.asset_name }}
+                    {% if form.asset_name.errors %}<div class="text-danger small mt-1">{{ form.asset_name.errors }}</div>{% endif %}
                 </div>
-                {% endfor %}
+                <!-- Category -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors }}</div>{% endif %}
+                </div>
+                <!-- Department -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <label for="{{ form.department.id_for_label }}" class="form-label">{{ form.department.label }}</label>
+                    {{ form.department }}
+                    {% if form.department.errors %}<div class="text-danger small mt-1">{{ form.department.errors }}</div>{% endif %}
+                </div>
+                <!-- Location -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}<div class="text-danger small mt-1">{{ form.location.errors }}</div>{% endif %}
+                </div>
+                <!-- Supplier -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <label for="{{ form.supplier.id_for_label }}" class="form-label">{{ form.supplier.label }}</label>
+                    {{ form.supplier }}
+                    {% if form.supplier.errors %}<div class="text-danger small mt-1">{{ form.supplier.errors }}</div>{% endif %}
+                </div>
+                <!-- Assigned To -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <label for="{{ form.assigned_to.id_for_label }}" class="form-label">{{ form.assigned_to.label }}</label>
+                    {{ form.assigned_to }}
+                    {% if form.assigned_to.errors %}<div class="text-danger small mt-1">{{ form.assigned_to.errors }}</div>{% endif %}
+                </div>
+                <!-- Status -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}<div class="text-danger small mt-1">{{ form.status.errors }}</div>{% endif %}
+                </div>
+                <!-- Condition -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <label for="{{ form.condition.id_for_label }}" class="form-label">{{ form.condition.label }}</label>
+                    {{ form.condition }}
+                    {% if form.condition.errors %}<div class="text-danger small mt-1">{{ form.condition.errors }}</div>{% endif %}
+                </div>
+
+                <!-- ====== Depreciation Calculator Section ====== -->
+                <div class="col-12 mb-3">
+                    <div class="card bg-light border-primary">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-calculator"></i> Depreciation Calculator</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Purchase Cost -->
+                                <div class="col-6 col-sm-3 mb-3">
+                                    <label for="{{ form.purchase_cost.id_for_label }}" class="form-label">{{ form.purchase_cost.label }}</label>
+                                    {{ form.purchase_cost }}
+                                    {% if form.purchase_cost.errors %}<div class="text-danger small mt-1">{{ form.purchase_cost.errors }}</div>{% endif %}
+                                </div>
+                                <!-- Useful Life -->
+                                <div class="col-6 col-sm-3 mb-3">
+                                    <label for="{{ form.useful_life.id_for_label }}" class="form-label">{{ form.useful_life.label }} (Years)</label>
+                                    {{ form.useful_life }}
+                                    {% if form.useful_life.help_text %}<small class="form-text text-muted d-block">{{ form.useful_life.help_text }}</small>{% endif %}
+                                    {% if form.useful_life.errors %}<div class="text-danger small mt-1">{{ form.useful_life.errors }}</div>{% endif %}
+                                </div>
+                                <!-- Salvage Value -->
+                                <div class="col-6 col-sm-3 mb-3">
+                                    <label for="{{ form.salvage_value.id_for_label }}" class="form-label">{{ form.salvage_value.label }}</label>
+                                    {{ form.salvage_value }}
+                                    {% if form.salvage_value.errors %}<div class="text-danger small mt-1">{{ form.salvage_value.errors }}</div>{% endif %}
+                                </div>
+                                <!-- Depreciation Method -->
+                                <div class="col-6 col-sm-3 mb-3">
+                                    <label for="{{ form.depreciation_method.id_for_label }}" class="form-label">{{ form.depreciation_method.label }}</label>
+                                    {{ form.depreciation_method }}
+                                    {% if form.depreciation_method.errors %}<div class="text-danger small mt-1">{{ form.depreciation_method.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <!-- Results Panel -->
+                            <div class="row mt-2">
+                                <div class="col-12 col-sm-4 mb-2">
+                                    <div class="text-center p-2 bg-white rounded border">
+                                        <label class="form-label fw-bold text-primary mb-1">Annual Depreciation</label>
+                                        <p id="calc-annual-depreciation" class="fs-5 fw-bold text-primary mb-0">—</p>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-4 mb-2">
+                                    <div class="text-center p-2 bg-white rounded border">
+                                        <label class="form-label fw-bold text-warning mb-1">Accumulated Depreciation (Year 1)</label>
+                                        <p id="calc-accumulated-depreciation" class="fs-5 fw-bold text-warning mb-0">—</p>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-4 mb-2">
+                                    <div class="text-center p-2 bg-white rounded border">
+                                        <label class="form-label fw-bold text-success mb-1">Net Book Value</label>
+                                        <p id="calc-net-book-value" class="fs-5 fw-bold text-success mb-0">—</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purchase Date -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <label for="{{ form.purchase_date.id_for_label }}" class="form-label">{{ form.purchase_date.label }}</label>
+                    {{ form.purchase_date }}
+                    {% if form.purchase_date.errors %}<div class="text-danger small mt-1">{{ form.purchase_date.errors }}</div>{% endif %}
+                </div>
+                <!-- Disposal Date -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <label for="{{ form.disposal_date.id_for_label }}" class="form-label">{{ form.disposal_date.label }}</label>
+                    {{ form.disposal_date }}
+                    {% if form.disposal_date.errors %}<div class="text-danger small mt-1">{{ form.disposal_date.errors }}</div>{% endif %}
+                </div>
+                <!-- Serial Number -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <label for="{{ form.serial_number.id_for_label }}" class="form-label">{{ form.serial_number.label }}</label>
+                    {{ form.serial_number }}
+                    <small class="form-text text-muted">Leave blank to auto-generate (e.g., NEC-00001)</small>
+                    {% if form.serial_number.errors %}<div class="text-danger small mt-1">{{ form.serial_number.errors }}</div>{% endif %}
+                </div>
             </div>
+
+            <!-- Notes (full width) -->
+            <div class="mb-3">
+                <label for="{{ form.notes.id_for_label }}" class="form-label">{{ form.notes.label }}</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}<div class="text-danger small mt-1">{{ form.notes.errors }}</div>{% endif %}
+            </div>
+
             <div class="d-grid d-sm-flex gap-2">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save</button>
                 <a href="{% url 'fixed_assets:fixed_asset_list' %}" class="btn btn-secondary">Cancel</a>
@@ -23,4 +175,91 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    // ===== Asset ID Preview =====
+    var categorySelect = document.getElementById('{{ form.category.id_for_label }}');
+    var assetNameInput = document.getElementById('{{ form.asset_name.id_for_label }}');
+    var previewSpan = document.getElementById('asset-id-preview');
+
+    if (categorySelect && assetNameInput && previewSpan) {
+        function updateAssetIdPreview() {
+            var name = assetNameInput.value.trim() || 'XXX';
+            var catId = categorySelect.value;
+            if (catId) {
+                var selectedOption = categorySelect.options[categorySelect.selectedIndex];
+                var catText = selectedOption ? selectedOption.text : '';
+                var codePrefix = catText.substring(0, 3).toUpperCase();
+                previewSpan.textContent = codePrefix + '-' + name.substring(0, 3).toUpperCase() + '-XXXX';
+                previewSpan.classList.remove('text-muted');
+            } else {
+                previewSpan.textContent = 'Select category and enter asset name to preview...';
+                previewSpan.classList.add('text-muted');
+            }
+        }
+        categorySelect.addEventListener('change', updateAssetIdPreview);
+        assetNameInput.addEventListener('input', updateAssetIdPreview);
+        // Run on page load in case of prefilled values (edit mode should use asset_id block)
+        updateAssetIdPreview();
+    }
+
+    // ===== Depreciation Calculator =====
+    var costInput = document.getElementById('{{ form.purchase_cost.id_for_label }}');
+    var lifeInput = document.getElementById('{{ form.useful_life.id_for_label }}');
+    var salvageInput = document.getElementById('{{ form.salvage_value.id_for_label }}');
+    var methodSelect = document.getElementById('{{ form.depreciation_method.id_for_label }}');
+    var annualEl = document.getElementById('calc-annual-depreciation');
+    var accumEl = document.getElementById('calc-accumulated-depreciation');
+    var nbvEl = document.getElementById('calc-net-book-value');
+
+    function formatCurrency(val) {
+        return '$' + val.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    function calculateDepreciation() {
+        var cost = parseFloat(costInput.value) || 0;
+        var life = parseInt(lifeInput.value) || 0;
+        var salvage = parseFloat(salvageInput.value) || 0;
+        var method = methodSelect ? methodSelect.value : 'SL';
+
+        if (cost > 0 && life > 0) {
+            var annual;
+            if (method === 'SL') {
+                annual = (cost - salvage) / life;
+            } else {
+                // Reducing Balance (Double Declining)
+                annual = (cost - salvage) * (2 / life);
+            }
+            // Clamp: annual should not reduce NBV below salvage value
+            if (cost - annual < salvage) {
+                annual = cost - salvage;
+            }
+            var accumulated = annual;  // first year accumulation equals annual
+            var nbv = Math.max(cost - accumulated, salvage);
+
+            annualEl.textContent = formatCurrency(annual);
+            accumEl.textContent = formatCurrency(accumulated);
+            nbvEl.textContent = formatCurrency(nbv);
+        } else {
+            annualEl.textContent = '—';
+            accumEl.textContent = '—';
+            nbvEl.textContent = '—';
+        }
+    }
+
+    if (costInput && lifeInput && salvageInput && methodSelect) {
+        [costInput, lifeInput, salvageInput].forEach(function (el) {
+            el.addEventListener('input', calculateDepreciation);
+        });
+        methodSelect.addEventListener('change', calculateDepreciation);
+        // Calculate on page load for edit mode (prefilled values)
+        calculateDepreciation();
+    }
+})();
+</script>
 {% endblock %}

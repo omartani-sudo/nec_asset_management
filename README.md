@@ -222,6 +222,8 @@ All business models include:
 ### Fixed Assets
 
 - Auto-generated Asset IDs using category code prefix (e.g., `ITE-DEL-0004`)
+- Auto-generated sequential serial numbers (e.g., `NEC-00001`) when left blank
+- Real-time depreciation calculator in the form — auto-computes Annual Depreciation, Accumulated Depreciation, and Net Book Value as you type
 - Full CRUD with inline depreciation schedule visualization
 - Supports serial numbers, suppliers, purchase dates, assigned users
 - Condition tracking: New → Good → Fair → Poor → Broken
@@ -268,6 +270,7 @@ Admin-only interface at `/lists/` for managing:
 ### User Management
 
 - **Admin Panel**: Full Django admin at `/admin/` — create, edit, delete users; assign roles and departments
+- **Self-Service Password Change**: Users can change their own password via the "Change Password" button in the navbar or via `POST /api/auth/users/change-password/`
 - **Sidebar Link**: "User Management" visible to staff users
 - **Role Hierarchy**:
 
@@ -280,17 +283,20 @@ Admin-only interface at `/lists/` for managing:
 
 ### Data Import
 
-Excel-to-database import via management command:
+**Web Upload** (recommended): Click "Import Excel" in the dashboard sidebar or the button on the dashboard page. Select an `.xlsx` file and the system imports it automatically.
+
+**CLI Import** (alternative): Excel-to-database import via management command:
 
 ```bash
 docker compose exec web python manage.py import_nec_excel /app/NEC_Asset_Registration.xlsx
 ```
 
-This command:
+The import process:
 1. Parses the **Lists** sheet → creates Categories, Departments, Locations, Statuses, Units
 2. Parses the **Fixed_Assets** sheet → creates assets with auto-generated IDs and depreciation schedules
 3. Skips duplicates, defaults missing required fields, handles garbage data gracefully
 4. Links assets to reference data by name (Somali or English)
+5. Validates file type (.xlsx only) and size (max 10 MB) on web upload
 
 ---
 
@@ -400,6 +406,7 @@ curl https://tournook.com/api/fixed-assets/fixed-assets/ \
 | POST | `/api/auth/login/` | None | — | Obtain JWT token pair |
 | POST | `/api/auth/login/refresh/` | Refresh | — | Refresh access token |
 | POST | `/api/auth/logout/` | Access | — | Invalidate session |
+| POST | `/api/auth/users/change-password/` | Access | All auth'd | Change own password |
 | GET | `/api/auth/users/` | Access | All auth'd | List users |
 | POST | `/api/auth/users/` | Access | Admin | Create user |
 | GET | `/api/fixed-assets/fixed-assets/` | Access | All auth'd | List fixed assets (paginated) |

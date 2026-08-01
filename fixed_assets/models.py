@@ -152,6 +152,9 @@ class FixedAsset(models.Model):
     def save(self, *args, **kwargs):
         if not self.asset_id:
             self.asset_id = self.generate_asset_id()
+        if not self.serial_number:
+            count = FixedAsset.objects.count()
+            self.serial_number = f'NEC-{count + 1:05d}'
         is_new = self.pk is None
         super().save(*args, **kwargs)
         if is_new:
