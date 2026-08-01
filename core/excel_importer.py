@@ -7,6 +7,7 @@ import pandas as pd
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError, transaction
 from lists.models import Category, Department, Location, Status, Unit
 from fixed_assets.models import FixedAsset
 
@@ -255,30 +256,35 @@ def import_fixed_assets(file_source, stdout=None):
             supplier = ''
 
         try:
-            asset = FixedAsset.objects.create(
-                asset_id=asset_id,
-                asset_name=asset_name,
-                category=category,
-                department=department,
-                location=location,
-                serial_number=serial,
-                supplier=supplier,
-                purchase_date=purchase_date or datetime.now().date(),
-                purchase_cost=purchase_cost or Decimal('0'),
-                useful_life=useful_life or 5,
-                salvage_value=salvage_value,
-                depreciation_method=dep_method,
-                status=status,
-                assigned_to=assigned_to,
-                condition=condition,
-                disposal_date=disposal_date,
-                notes=safe_str(row.iloc[19]),
-                created_by=admin_user,
-                updated_by=admin_user,
-            )
+            with transaction.atomic():
+                asset = FixedAsset.objects.create(
+                    asset_id=asset_id,
+                    asset_name=asset_name,
+                    category=category,
+                    department=department,
+                    location=location,
+                    serial_number=serial,
+                    supplier=supplier,
+                    purchase_date=purchase_date or datetime.now().date(),
+                    purchase_cost=purchase_cost or Decimal('0'),
+                    useful_life=useful_life or 5,
+                    salvage_value=salvage_value,
+                    depreciation_method=dep_method,
+                    status=status,
+                    assigned_to=assigned_to,
+                    condition=condition,
+                    disposal_date=disposal_date,
+                    notes=safe_str(row.iloc[19]),
+                    created_by=admin_user,
+                    updated_by=admin_user,
+                )
             log(f'  IMPORTED: {asset.asset_id} - {asset.asset_name} | '
                 f'Cost: ${asset.purchase_cost} | {asset.depreciation_method} | {asset.useful_life}yr')
             imported += 1
+        except IntegrityError:
+            # Duplicate asset_id — another user/concurrent upload already imported this
+            log(f'  SKIP (duplicate): {asset_id} - {asset_name}')
+            skipped += 1
         except Exception as e:
             error_msg = str(e)
             log(f'  FAILED: {asset_id} - {asset_name}: {error_msg}')

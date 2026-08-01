@@ -294,7 +294,7 @@ docker compose exec web python manage.py import_nec_excel /app/NEC_Asset_Registr
 The import process:
 1. Parses the **Lists** sheet → creates Categories, Departments, Locations, Statuses, Units
 2. Parses the **Fixed_Assets** sheet → creates assets with auto-generated IDs and depreciation schedules
-3. Skips duplicates, defaults missing required fields, handles garbage data gracefully
+3. Skips duplicates (safe for concurrent uploads — uses database-level unique constraint)
 4. Links assets to reference data by name (Somali or English)
 5. Validates file type (.xlsx only) and size (max 10 MB) on web upload
 
