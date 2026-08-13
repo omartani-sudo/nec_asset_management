@@ -2,11 +2,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Sum, Count
 from django.http import JsonResponse
 from .models import FixedAsset, DepreciationSchedule
 from lists.models import Category, Department, Location, Status
 from .forms import FixedAssetForm, ExcelUploadForm
+from core.decorators import admin_required
 
 @login_required
 def fixed_asset_list(request):
@@ -60,6 +62,7 @@ def fixed_asset_detail(request, pk):
     return render(request, 'fixed_assets/detail.html', context)
 
 @login_required
+@admin_required('fixed_assets:fixed_asset_list')
 def fixed_asset_delete(request, pk):
     asset = get_object_or_404(FixedAsset, pk=pk)
     if request.method == 'POST':
@@ -67,6 +70,32 @@ def fixed_asset_delete(request, pk):
         messages.success(request, 'Fixed asset deleted.')
         return redirect('fixed_assets:fixed_asset_list')
     return render(request, 'fixed_assets/delete.html', {'asset': asset})
+
+@login_required
+@admin_required('fixed_assets:fixed_asset_list')
+def fixed_asset_bulk_delete(request):
+    """Delete multiple fixed assets selected via checkboxes on the list page.
+
+    Flow: POST with asset_ids from the list page -> confirmation page listing
+    the assets -> POST with confirm=1 -> deletes all in one transaction.
+    """
+    if request.method == 'POST':
+        ids = request.POST.getlist('asset_ids')
+        if not ids:
+            messages.error(request, 'No assets selected.')
+            return redirect('fixed_assets:fixed_asset_list')
+        assets = FixedAsset.objects.filter(pk__in=ids)
+        if 'confirm' in request.POST:
+            count = assets.count()
+            with transaction.atomic():
+                assets.delete()
+            messages.success(request, f'{count} fixed asset{"s" if count != 1 else ""} deleted.')
+            return redirect('fixed_assets:fixed_asset_list')
+        return render(request, 'fixed_assets/bulk_delete.html', {
+            'assets': assets,
+            'asset_ids': ids,
+        })
+    return redirect('fixed_assets:fixed_asset_list')
 
 @login_required
 def fixed_asset_summary(request):

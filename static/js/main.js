@@ -89,4 +89,30 @@
         }
     });
 
+    // ---- Bulk delete selection (list pages) ----------------------------
+    const selectAll = document.getElementById('select-all');
+    const assetChecks = document.querySelectorAll('.asset-check');
+    const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+
+    if (selectAll && assetChecks.length) {
+        function updateBulkState() {
+            const checked = Array.prototype.filter.call(assetChecks, function (c) { return c.checked; });
+            const anyChecked = checked.length > 0;
+            if (bulkDeleteBtn) bulkDeleteBtn.disabled = !anyChecked;
+            selectAll.checked = anyChecked && checked.length === assetChecks.length;
+            selectAll.indeterminate = anyChecked && checked.length < assetChecks.length;
+        }
+
+        selectAll.addEventListener('change', function () {
+            assetChecks.forEach(function (c) { c.checked = selectAll.checked; });
+            updateBulkState();
+        });
+
+        assetChecks.forEach(function (c) {
+            c.addEventListener('change', updateBulkState);
+        });
+
+        updateBulkState();
+    }
+
 })();

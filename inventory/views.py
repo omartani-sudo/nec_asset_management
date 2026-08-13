@@ -2,10 +2,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Sum, F, ExpressionWrapper, IntegerField
 from .models import InventoryItem
 from lists.models import Category, Location, Status, Unit
 from .forms import InventoryItemForm
+from core.decorators import admin_required
 
 @login_required
 def inventory_list(request):
@@ -43,6 +45,7 @@ def inventory_update(request, pk):
     return render(request, 'inventory/form.html', {'form': form, 'title': 'Edit Inventory Item'})
 
 @login_required
+@admin_required('inventory:inventory_list')
 def inventory_delete(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
     if request.method == 'POST':
@@ -50,6 +53,28 @@ def inventory_delete(request, pk):
         messages.success(request, 'Inventory item deleted.')
         return redirect('inventory_list')
     return render(request, 'inventory/delete.html', {'item': item})
+
+@login_required
+@admin_required('inventory:inventory_list')
+def inventory_bulk_delete(request):
+    """Delete multiple inventory items selected via checkboxes on the list page."""
+    if request.method == 'POST':
+        ids = request.POST.getlist('item_ids')
+        if not ids:
+            messages.error(request, 'No items selected.')
+            return redirect('inventory:inventory_list')
+        items = InventoryItem.objects.filter(pk__in=ids)
+        if 'confirm' in request.POST:
+            count = items.count()
+            with transaction.atomic():
+                items.delete()
+            messages.success(request, f'{count} inventory item{"s" if count != 1 else ""} deleted.')
+            return redirect('inventory:inventory_list')
+        return render(request, 'inventory/bulk_delete.html', {
+            'items': items,
+            'item_ids': ids,
+        })
+    return redirect('inventory:inventory_list')
 
 @login_required
 def reorder_list(request):

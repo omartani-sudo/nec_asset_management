@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Delete Current Assets{% endblock %}
+{% block content %}
+<h2>Delete Current Assets</h2>
+<div class="alert alert-danger">
+    Are you sure you want to delete these <strong>{{ assets|length }}</strong> asset{{ assets|length|pluralize }}?
+    This cannot be undone.
+</div>
+<div class="card mb-3">
+    <div class="card-body table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr><th>Asset ID</th><th>Description</th><th>Category</th><th>Department</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+                {% for asset in assets %}
+                <tr>
+                    <td>{{ asset.asset_id }}</td>
+                    <td>{{ asset.description }}</td>
+                    <td>{{ asset.category.name }}</td>
+                    <td>{{ asset.department.name }}</td>
+                    <td>{{ asset.value|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">No assets found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<form method="post">
+    {% csrf_token %}
+    {% for aid in asset_ids %}
+    <input type="hidden" name="asset_ids" value="{{ aid }}">
+    {% endfor %}
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" name="confirm" value="1" class="btn btn-danger">Yes, Delete All</button>
+        <a href="{% url 'current_assets:current_asset_list' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

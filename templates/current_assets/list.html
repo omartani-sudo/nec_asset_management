@@ -3,25 +3,49 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 page-header-row">
     <h2>Current Assets</h2>
-    <a href="{% url 'current_assets:current_asset_create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> Add Asset</a>
+    <div>
+        {% if user.role == 'admin' %}
+        <button type="submit" form="bulk-delete-form" class="btn btn-danger me-2" id="bulk-delete-btn" disabled>
+            <i class="bi bi-trash"></i> Delete Selected
+        </button>
+        {% endif %}
+        <a href="{% url 'current_assets:current_asset_create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> Add Asset</a>
+    </div>
 </div>
 <div class="card">
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead><tr><th>Asset ID</th><th>Description</th><th>Category</th><th>Department</th><th>Date</th><th>Value</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody>
-                {% for asset in assets %}
-                <tr><td data-label="Asset ID">{{ asset.asset_id }}</td><td data-label="Description">{{ asset.description }}</td><td data-label="Category">{{ asset.category.name }}</td><td data-label="Department">{{ asset.department.name }}</td><td data-label="Date">{{ asset.date_recorded }}</td><td data-label="Value">{{ asset.value|floatformat:2 }}</td><td data-label="Status">{{ asset.status.name }}</td><td data-label="Actions">
-                    <a href="{% url 'current_assets:current_asset_update' asset.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                    <a href="{% url 'current_assets:current_asset_delete' asset.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
-                </td></tr>
-                {% empty %}
-                <tr><td colspan="8" class="text-center">No assets found.</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <form id="bulk-delete-form" method="post" action="{% url 'current_assets:current_asset_bulk_delete' %}">
+            {% csrf_token %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            {% if user.role == 'admin' %}
+                            <th><input type="checkbox" id="select-all" title="Select all"></th>
+                            {% endif %}
+                            <th>Asset ID</th><th>Description</th><th>Category</th><th>Department</th><th>Date</th><th>Value</th><th>Status</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for asset in assets %}
+                    <tr>
+                        {% if user.role == 'admin' %}
+                        <td><input type="checkbox" name="asset_ids" value="{{ asset.pk }}" class="asset-check"></td>
+                        {% endif %}
+                        <td data-label="Asset ID">{{ asset.asset_id }}</td><td data-label="Description">{{ asset.description }}</td><td data-label="Category">{{ asset.category.name }}</td><td data-label="Department">{{ asset.department.name }}</td><td data-label="Date">{{ asset.date_recorded }}</td><td data-label="Value">{{ asset.value|floatformat:2 }}</td><td data-label="Status">{{ asset.status.name }}</td><td data-label="Actions">
+                            <a href="{% url 'current_assets:current_asset_update' asset.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                            {% if user.role == 'admin' %}
+                            <a href="{% url 'current_assets:current_asset_delete' asset.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="{% if user.role == 'admin' %}9{% else %}8{% endif %}" class="text-center">No assets found.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

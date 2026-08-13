@@ -2,8 +2,8 @@
 from django.urls import path
 from .views import (
     fixed_asset_list, fixed_asset_create, fixed_asset_update,
-    fixed_asset_detail, fixed_asset_delete, fixed_asset_summary,
-    fixed_assets_by_department, upload_excel,
+    fixed_asset_detail, fixed_asset_delete, fixed_asset_bulk_delete,
+    fixed_asset_summary, fixed_assets_by_department, upload_excel,
 )
 
 app_name = 'fixed_assets'
@@ -13,6 +13,7 @@ urlpatterns = [
     path('edit/<int:pk>/', fixed_asset_update, name='fixed_asset_update'),
     path('view/<int:pk>/', fixed_asset_detail, name='fixed_asset_detail'),
     path('delete/<int:pk>/', fixed_asset_delete, name='fixed_asset_delete'),
+    path('delete/bulk/', fixed_asset_bulk_delete, name='fixed_asset_bulk_delete'),
     path('reports/by-category/', fixed_asset_summary, name='fixed_asset_summary'),
     path('reports/by-department/', fixed_assets_by_department, name='fixed_assets_by_department'),
     path('upload-excel/', upload_excel, name='upload_excel'),

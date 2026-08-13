@@ -228,12 +228,14 @@ All business models include:
 - Supports serial numbers, suppliers, purchase dates, assigned users
 - Condition tracking: New → Good → Fair → Poor → Broken
 - Disposal date capture for retired assets
+- **Bulk delete**: tick checkboxes on the list (or "Select all") → "Delete Selected" → review the confirmation list → delete all in one transaction (Admin only)
 
 ### Current Assets
 
 - Track liquid assets: cash balances, receivables, prepaid expenses
 - Department and location allocation
 - Date-recorded field for month-end reconciliation
+- Bulk delete with checkbox selection (Admin only)
 
 ### Inventory
 
@@ -241,6 +243,7 @@ All business models include:
 - Auto-calculated `total_value = balance_qty × unit_cost`
 - Auto-calculated `stock_status`: OK, Reorder Needed, Out of Stock
 - Reorder level alerts on dashboard
+- Bulk delete with checkbox selection (Admin only)
 
 ### Reports
 
@@ -415,11 +418,14 @@ curl https://tournook.com/api/fixed-assets/fixed-assets/ \
 | PUT | `/api/fixed-assets/fixed-assets/{id}/` | Access | Finance/Admin | Update asset |
 | PATCH | `/api/fixed-assets/fixed-assets/{id}/` | Access | Finance/Admin | Partial update |
 | DELETE | `/api/fixed-assets/fixed-assets/{id}/` | Access | Admin | Delete asset |
+| POST | `/api/fixed-assets/fixed-assets/bulk_delete/` | Access | Admin | Bulk delete assets by ID list (`{"ids": [...]}`) |
 | GET | `/api/fixed-assets/depreciation-schedules/` | Access | All auth'd | List all depreciation entries |
 | GET | `/api/current-assets/current-assets/` | Access | All auth'd | List current assets |
 | POST | `/api/current-assets/current-assets/` | Access | Finance/Admin | Create current asset |
+| POST | `/api/current-assets/current-assets/bulk_delete/` | Access | Admin | Bulk delete current assets by ID list |
 | GET | `/api/inventory/inventory-items/` | Access | All auth'd | List inventory items |
 | POST | `/api/inventory/inventory-items/` | Access | Finance/Admin | Create inventory item |
+| POST | `/api/inventory/inventory-items/bulk_delete/` | Access | Admin | Bulk delete inventory items by ID list |
 | GET | `/api/lists/categories/` | Access | All auth'd | List categories |
 | POST | `/api/lists/categories/` | Access | Admin | Create category |
 | GET | `/api/lists/departments/` | Access | All auth'd | List departments |
@@ -461,6 +467,22 @@ curl -X POST https://tournook.com/api/fixed-assets/fixed-assets/ \
 # {"asset_id": "ITE-DEL-0004", "annual_depreciation": "324.00",
 #  "net_book_value": "1626.14", ...}
 ```
+
+### Bulk Deleting Fixed Assets (Example)
+
+```bash
+curl -X POST https://tournook.com/api/fixed-assets/fixed-assets/bulk_delete/ \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"ids": [1, 2, 3]}'
+
+# Response:
+# {"deleted": 3}
+```
+
+Deletes happen in a single transaction; depreciation schedules are removed
+automatically with their assets. Available for current assets and inventory at
+the equivalent `/bulk_delete/` endpoints.
 
 ---
 

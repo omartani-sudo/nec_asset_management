@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-from rest_framework import viewsets, permissions
+from django.db import transaction
+from rest_framework import viewsets, permissions, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from nec_asset_management.settings.base import IsAdminUser, IsFinanceOrAdmin, IsViewerOrAbove
 from .models import InventoryItem
 from .serializers import InventoryItemSerializer
@@ -11,7 +14,9 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
     serializer_class = InventoryItemSerializer
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ['destroy', 'bulk_delete']:
+            return [IsAdminUser()]
+        if self.action in ['create', 'update', 'partial_update']:
             return [IsFinanceOrAdmin()]
         return [IsViewerOrAbove()]
 
@@ -20,3 +25,14 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
+
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        ids = request.data.get('ids', [])
+        if not isinstance(ids, list):
+            return Response({'error': '"ids" must be a list of item IDs.'}, status=status.HTTP_400_BAD_REQUEST)
+        ids = [i for i in ids if isinstance(i, int)]
+        count = InventoryItem.objects.filter(pk__in=ids).count()
+        with transaction.atomic():
+            InventoryItem.objects.filter(pk__in=ids).delete()
+        return Response({'deleted': count})

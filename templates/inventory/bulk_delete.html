@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Delete Inventory Items{% endblock %}
+{% block content %}
+<h2>Delete Inventory Items</h2>
+<div class="alert alert-danger">
+    Are you sure you want to delete these <strong>{{ items|length }}</strong> item{{ items|length|pluralize }}?
+    This cannot be undone.
+</div>
+<div class="card mb-3">
+    <div class="card-body table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr><th>Item Code</th><th>Description</th><th>Category</th><th>Unit</th><th>Unit Cost</th></tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.item_code }}</td>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.category.name }}</td>
+                    <td>{{ item.unit.name }}</td>
+                    <td>{{ item.unit_cost|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">No items found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<form method="post">
+    {% csrf_token %}
+    {% for iid in item_ids %}
+    <input type="hidden" name="item_ids" value="{{ iid }}">
+    {% endfor %}
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" name="confirm" value="1" class="btn btn-danger">Yes, Delete All</button>
+        <a href="{% url 'inventory:inventory_list' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

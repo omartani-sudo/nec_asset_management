@@ -3,48 +3,66 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 page-header-row">
     <h2>Fixed Assets</h2>
-    <a href="{% url 'fixed_assets:fixed_asset_create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> Add Asset</a>
+    <div>
+        {% if user.role == 'admin' %}
+        <button type="submit" form="bulk-delete-form" class="btn btn-danger me-2" id="bulk-delete-btn" disabled>
+            <i class="bi bi-trash"></i> Delete Selected
+        </button>
+        {% endif %}
+        <a href="{% url 'fixed_assets:fixed_asset_create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> Add Asset</a>
+    </div>
 </div>
 <div class="card">
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Asset ID</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Department</th>
-                        <th>Purchase Date</th>
-                        <th>Purchase Cost</th>
-                        <th>NBV</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for asset in assets %}
-                    <tr>
-                        <td data-label="Asset ID">{{ asset.asset_id }}</td>
-                        <td data-label="Name">{{ asset.asset_name }}</td>
-                        <td data-label="Category">{{ asset.category.name }}</td>
-                        <td data-label="Department">{{ asset.department.name }}</td>
-                        <td data-label="Purchase Date">{{ asset.purchase_date }}</td>
-                        <td data-label="Purchase Cost">{{ asset.purchase_cost|floatformat:2 }}</td>
-                        <td data-label="NBV">{{ asset.net_book_value|floatformat:2 }}</td>
-                        <td data-label="Status">{{ asset.status.name }}</td>
-                        <td data-label="Actions">
-                            <a href="{% url 'fixed_assets:fixed_asset_detail' asset.pk %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
-                            <a href="{% url 'fixed_assets:fixed_asset_update' asset.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                            <a href="{% url 'fixed_assets:fixed_asset_delete' asset.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="9" class="text-center">No assets found.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <form id="bulk-delete-form" method="post" action="{% url 'fixed_assets:fixed_asset_bulk_delete' %}">
+            {% csrf_token %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            {% if user.role == 'admin' %}
+                            <th><input type="checkbox" id="select-all" title="Select all"></th>
+                            {% endif %}
+                            <th>Asset ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Department</th>
+                            <th>Purchase Date</th>
+                            <th>Purchase Cost</th>
+                            <th>NBV</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for asset in assets %}
+                        <tr>
+                            {% if user.role == 'admin' %}
+                            <td><input type="checkbox" name="asset_ids" value="{{ asset.pk }}" class="asset-check"></td>
+                            {% endif %}
+                            <td data-label="Asset ID">{{ asset.asset_id }}</td>
+                            <td data-label="Name">{{ asset.asset_name }}</td>
+                            <td data-label="Category">{{ asset.category.name }}</td>
+                            <td data-label="Department">{{ asset.department.name }}</td>
+                            <td data-label="Purchase Date">{{ asset.purchase_date }}</td>
+                            <td data-label="Purchase Cost">{{ asset.purchase_cost|floatformat:2 }}</td>
+                            <td data-label="NBV">{{ asset.net_book_value|floatformat:2 }}</td>
+                            <td data-label="Status">{{ asset.status.name }}</td>
+                            <td data-label="Actions">
+                                <a href="{% url 'fixed_assets:fixed_asset_detail' asset.pk %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'fixed_assets:fixed_asset_update' asset.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                                {% if user.role == 'admin' %}
+                                <a href="{% url 'fixed_assets:fixed_asset_delete' asset.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="{% if user.role == 'admin' %}10{% else %}9{% endif %}" class="text-center">No assets found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
