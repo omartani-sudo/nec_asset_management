@@ -280,7 +280,7 @@ Admin-only interface at `/lists/` for managing:
 | Role | Web UI | API | Admin |
 |------|--------|-----|-------|
 | **Admin** | Full access | Full CRUD | Yes |
-| **Finance** | Full access | Write on assets/inventory, read on lists | No |
+| **Finance** | Full access (deletes are admin-only) | Write on assets/inventory (no delete), read on lists | No |
 | **User** | Read + limited write | Read-only | No |
 | **Viewer** | Read-only | Read-only | No |
 
@@ -569,7 +569,7 @@ docker compose exec web python manage.py makemigrations --check --dry-run
 docker compose exec web python manage.py collectstatic --noinput --dry-run
 
 # Run specific test
-docker compose exec web python manage.py test tests.test_api
+docker compose exec web python manage.py test tests.test_api tests.test_bulk_delete
 ```
 
 ---
@@ -675,6 +675,7 @@ http:
 | **Password Hashing** | Django PBKDF2 (default) | Salted + iterated |
 | **SQL Injection** | Django ORM parameterized queries | Prepared statements |
 | **XSS** | Django template auto-escaping | Output encoding |
+| **Delete Protection** | Deletes (single + bulk, web + API) restricted to the admin role | 403 / redirect for other roles |
 
 ### Security Headers (Live Response)
 
@@ -711,6 +712,7 @@ docker compose exec web python manage.py test
 - JWT login/logout token lifecycle
 - Role-based permission enforcement (admin vs user vs unauthenticated)
 - Fixed asset CRUD operations with depreciation verification
+- Bulk delete (web + API): confirmation flow, depreciation-schedule cascade, admin-only gating
 - API pagination and throttling
 
 ### CI/CD Pipeline (GitHub Actions)
@@ -796,6 +798,7 @@ nec_asset_management/
 ├── core/                          # Core utilities
 │   ├── views.py                   # Health check endpoint
 │   ├── context_processors.py      # Template context
+│   ├── decorators.py              # Admin-role view guards (delete gating)
 │   └── management/commands/
 │       └── import_nec_excel.py    # Excel bulk import command
 │
@@ -805,7 +808,7 @@ nec_asset_management/
 │   ├── 403.html, 404.html, 500.html
 │   ├── authentication/login.html
 │   ├── dashboard/dashboard.html
-│   ├── fixed_assets/              # list, detail, form, delete
+│   ├── fixed_assets/              # list, detail, form, delete, bulk_delete
 │   ├── current_assets/            # list, form, delete
 │   ├── inventory/                 # list, form, delete
 │   ├── lists/lists.html
@@ -818,7 +821,8 @@ nec_asset_management/
 │
 ├── tests/
 │   ├── __init__.py
-│   └── test_api.py                # API integration tests
+│   ├── test_api.py                # API integration tests
+│   └── test_bulk_delete.py        # Bulk delete + role-gating tests
 │
 ├── NEC Asset registration -Final.xlsx  # Reference data source
 ├── Dockerfile                     # Multi-stage Docker build
