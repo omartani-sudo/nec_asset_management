@@ -100,7 +100,8 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   color: var(--muted); font-weight: 500; font-size: 13.5px;
   transition: background .15s ease, color .15s ease; position: relative;
 }
-.nav-item i { font-size: 1.05rem; width: 18px; text-align: center; }
+.nav-item i { font-size: 1.05rem; width: 18px; text-align: center; flex-shrink: 0; }
+.nav-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nav-item:hover { background: var(--bg); color: var(--fg); }
 .nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .nav-item.active::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--accent); }
@@ -148,6 +149,12 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   padding: 16px 20px;
 }
 .card-header h5, .card-header h6 { font-weight: 700; font-size: 15px; }
+.card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 20px; border-bottom: 1px solid var(--border-2);
+}
+.card-head h3 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+.card-head p { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
 .card-body { padding: 20px; }
 .page-title { font-size: 22px; font-weight: 800; letter-spacing: -.02em; margin: 0; }
 .page-desc { color: var(--muted); font-size: 13.5px; margin-top: 4px; }
@@ -472,8 +479,11 @@ td .btn.btn-sm { min-width: 34px; min-height: 34px; display: inline-flex; align-
   table.data td.actions-cell::before { display: none; }
   /* page header buttons stack full-width */
   .page-header-row { flex-direction: column; align-items: stretch; gap: 10px; }
-  .page-header-row > div { display: flex; flex-wrap: wrap; gap: 8px; }
+  .page-header-row > div { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
   .page-header-row .btn { flex: 1; min-width: 0; }
+  .page-header-row form.d-flex,
+  .page-header-row form { flex: 1 1 100%; flex-wrap: wrap; }
+  .page-header-row form select { width: 100%; }
 }
 
 .sidebar-back { position: fixed; inset: 0; background: rgba(6, 10, 20, .4); z-index: 45; display: none; }
