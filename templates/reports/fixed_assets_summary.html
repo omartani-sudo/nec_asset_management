@@ -13,7 +13,7 @@
                 <thead><tr><th>Category</th><th>Count</th><th>Total Cost</th><th>Total NBV</th></tr></thead>
                 <tbody>
                 {% for r in data %}
-                <tr><td>{{ r.category__name }}</td><td>{{ r.count }}</td><td>{{ r.total_cost|floatformat:2 }}</td><td>{{ r.total_nbv|floatformat:2 }}</td></tr>
+                <tr><td data-label="Name">{{ r.category__name }}</td><td data-label="Count">{{ r.count }}</td><td data-label="Total Cost">{{ r.total_cost|floatformat:2 }}</td><td data-label="Total NBV">{{ r.total_nbv|floatformat:2 }}</td></tr>
                 {% endfor %}
                 </tbody>
             </table>

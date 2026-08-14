@@ -31,7 +31,7 @@
                     {% for item in items %}
                     <tr>
                         {% if user.role == 'admin' %}
-                        <td><input type="checkbox" name="item_ids" value="{{ item.pk }}" class="asset-check"></td>
+                        <td class="checkbox-cell" data-label="Select"><input type="checkbox" name="item_ids" value="{{ item.pk }}" class="asset-check"></td>
                         {% endif %}
                         <td data-label="Item Code">{{ item.item_code }}</td>
                         <td data-label="Description">{{ item.description }}</td>

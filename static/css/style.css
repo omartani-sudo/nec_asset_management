@@ -292,6 +292,28 @@
     }
 }
 
+/* ---- Bulk-delete checkboxes --------------------------------------- */
+input.asset-check,
+#select-all {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: #0d6efd;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+/* Stacked-card mode: checkbox cell gets a thumb-friendly tap target */
+@media (max-width: 767.98px) {
+    .table-responsive td.checkbox-cell input[type="checkbox"] {
+        width: 1.5rem;
+        height: 1.5rem;
+        flex-shrink: 0;
+    }
+    .table-responsive td.checkbox-cell {
+        align-items: center;
+    }
+}
+
 /* ---- Page headers (title + action buttons) -------------------------- */
 @media (max-width: 767.98px) {
     .page-header-row {

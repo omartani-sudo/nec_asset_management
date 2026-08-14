@@ -11,7 +11,7 @@
         <thead><tr><th>Category</th><th>Count</th><th>Total Value</th></tr></thead>
         <tbody>
         {% for r in data %}
-        <tr><td>{{ r.category__name }}</td><td>{{ r.count }}</td><td>{{ r.total_value|floatformat:2 }}</td></tr>
+        <tr><td data-label="Category">{{ r.category__name }}</td><td data-label="Count">{{ r.count }}</td><td data-label="Total Value">{{ r.total_value|floatformat:2 }}</td></tr>
         {% endfor %}
         </tbody>
     </table>

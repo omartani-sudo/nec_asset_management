@@ -31,7 +31,7 @@
             <thead><tr><th>Year</th><th>Start Date</th><th>End Date</th><th>Opening NBV</th><th>Depreciation</th><th>Accum. Depr.</th><th>Closing NBV</th></tr></thead>
             <tbody>
             {% for s in schedules %}
-            <tr><td>{{ s.year_number }}</td><td>{{ s.start_date }}</td><td>{{ s.end_date }}</td><td>{{ s.opening_nbv|floatformat:2 }}</td><td>{{ s.annual_depreciation|floatformat:2 }}</td><td>{{ s.accumulated_depreciation|floatformat:2 }}</td><td>{{ s.closing_nbv|floatformat:2 }}</td></tr>
+            <tr><td data-label="Year">{{ s.year_number }}</td><td data-label="Start Date">{{ s.start_date }}</td><td data-label="End Date">{{ s.end_date }}</td><td data-label="Opening NBV">{{ s.opening_nbv|floatformat:2 }}</td><td data-label="Depreciation">{{ s.annual_depreciation|floatformat:2 }}</td><td data-label="Accum. Depr.">{{ s.accumulated_depreciation|floatformat:2 }}</td><td data-label="Closing NBV">{{ s.closing_nbv|floatformat:2 }}</td></tr>
             {% endfor %}
             </tbody>
         </table>

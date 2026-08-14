@@ -13,7 +13,7 @@
                 <thead><tr><th>Status</th><th>Count</th></tr></thead>
                 <tbody>
                 {% for r in data %}
-                <tr><td>{{ r.status__name }}</td><td>{{ r.count }}</td></tr>
+                <tr><td data-label="Status">{{ r.status__name }}</td><td data-label="Count">{{ r.count }}</td></tr>
                 {% endfor %}
                 </tbody>
             </table>
