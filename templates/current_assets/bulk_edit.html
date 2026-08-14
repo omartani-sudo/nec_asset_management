@@ -52,7 +52,7 @@
         </div>
     </div>
     <div class="d-grid d-sm-flex gap-2">
-        <button type="submit" name="apply" value="1" class="btn btn-primary"><i class="bi bi-save"></i> Apply Changes</button>
+        <button type="submit" name="apply" value="1" class="btn btn-primary"><span class="material-symbols-outlined" aria-hidden="true">save</span> Apply Changes</button>
         <a href="{% url 'current_assets:current_asset_list' %}{% if next_qs %}?{{ next_qs }}{% endif %}" class="btn btn-secondary">Cancel</a>
     </div>
 </form>

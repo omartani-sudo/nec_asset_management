@@ -10,24 +10,24 @@
     </div>
     <div>
         {% if can_edit %}
-        <a href="{% url 'current_assets:current_asset_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Asset</a>
+        <a href="{% url 'current_assets:current_asset_create' %}" class="btn btn-primary"><span class="material-symbols-outlined" aria-hidden="true">add</span> Add Asset</a>
         {% endif %}
-        <a href="{% url 'current_assets:current_asset_export' %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Export</a>
+        <a href="{% url 'current_assets:current_asset_export' %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn btn-outline-success"><span class="material-symbols-outlined" aria-hidden="true">table_view</span> Export</a>
     </div>
 </div>
 
 <div class="bulk-bar mb-3 no-print">
-    <i class="bi bi-check2-square"></i>
+    <span class="material-symbols-outlined" aria-hidden="true">select_all</span>
     <span class="n" id="selection-count">0 selected</span>
     <span class="header-spacer"></span>
     {% if can_edit %}
     <button type="submit" form="bulk-delete-form" formaction="{% url 'current_assets:current_asset_bulk_edit' %}" class="btn btn-sm btn-outline-primary" id="bulk-edit-btn" disabled>
-        <i class="bi bi-pencil-square"></i> Bulk Edit
+        <span class="material-symbols-outlined" aria-hidden="true">edit</span> Bulk Edit
     </button>
     {% endif %}
     {% if can_delete %}
     <button type="submit" form="bulk-delete-form" class="btn btn-sm btn-danger" id="bulk-delete-btn" disabled>
-        <i class="bi bi-trash"></i> Delete Selected
+        <span class="material-symbols-outlined" aria-hidden="true">delete</span> Delete Selected
     </button>
     {% endif %}
 </div>
@@ -35,7 +35,7 @@
 <div class="filter-bar mb-3">
     <form method="get" class="filter-row">
         <div class="search-box">
-            <i class="bi bi-search"></i>
+            <span class="material-symbols-outlined" aria-hidden="true">search</span>
             <label for="q-current" class="visually-hidden">Search current assets</label>
             <input type="text" id="q-current" name="q" value="{{ request.GET.q }}" placeholder="Search ID or description...">
         </div>
@@ -81,7 +81,7 @@
             <option value="asc" {% if request.GET.dir != 'desc' %}selected{% endif %}>Ascending</option>
             <option value="desc" {% if request.GET.dir == 'desc' %}selected{% endif %}>Descending</option>
         </select>
-        <button type="submit" class="btn btn-primary apply-btn"><i class="bi bi-funnel"></i> Apply</button>
+        <button type="submit" class="btn btn-primary apply-btn"><span class="material-symbols-outlined" aria-hidden="true">filter_alt</span> Apply</button>
         {% if query_string %}<a href="{% url 'current_assets:current_asset_list' %}" class="btn btn-outline-secondary apply-btn">Clear</a>{% endif %}
     </form>
 </div>
@@ -126,10 +126,10 @@
                         <td data-label="Actions" class="actions-cell">
                             <div class="row-actions">
                                 {% if can_edit %}
-                                <a href="{% url 'current_assets:current_asset_update' asset.pk %}" class="mini-btn" aria-label="Edit {{ asset.asset_id }}"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'current_assets:current_asset_update' asset.pk %}" class="mini-btn" aria-label="Edit {{ asset.asset_id }}"><span class="material-symbols-outlined" aria-hidden="true">edit</span></a>
                                 {% endif %}
                                 {% if can_delete %}
-                                <a href="{% url 'current_assets:current_asset_delete' asset.pk %}" class="mini-btn text-danger" aria-label="Delete {{ asset.asset_id }}"><i class="bi bi-trash"></i></a>
+                                <a href="{% url 'current_assets:current_asset_delete' asset.pk %}" class="mini-btn text-danger" aria-label="Delete {{ asset.asset_id }}"><span class="material-symbols-outlined" aria-hidden="true">delete</span></a>
                                 {% endif %}
                             </div>
                         </td>
@@ -137,7 +137,7 @@
                     {% empty %}
                     <tr><td colspan="{% if can_delete or can_edit %}9{% else %}8{% endif %}" class="text-center">
                         <div class="empty-state">
-                            <i class="bi bi-inbox"></i>
+                            <span class="material-symbols-outlined" aria-hidden="true">inbox</span>
                             <p class="mb-0">No assets found.{% if query_string %} Try clearing the filters.{% endif %}</p>
                         </div>
                     </td></tr>

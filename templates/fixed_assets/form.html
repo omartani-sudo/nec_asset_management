@@ -8,14 +8,14 @@
 {% if asset_id %}
 <!-- Asset ID display (edit mode) -->
 <div class="alert alert-info mb-3">
-    <strong><i class="bi bi-tag"></i> Asset ID:</strong>
+    <strong><span class="material-symbols-outlined" aria-hidden="true">sell</span> Asset ID:</strong>
     <span class="fw-bold">{{ asset_id }}</span>
     <small class="text-muted ms-2">(auto-generated)</small>
 </div>
 {% else %}
 <!-- Asset ID preview (create mode) -->
 <div class="alert alert-info mb-3">
-    <strong><i class="bi bi-tag"></i> Asset ID Preview:</strong>
+    <strong><span class="material-symbols-outlined" aria-hidden="true">sell</span> Asset ID Preview:</strong>
     <span id="asset-id-preview" class="text-muted">Select category and enter asset name to preview...</span>
     <small class="text-muted ms-2">(auto-generated on save)</small>
 </div>
@@ -24,7 +24,7 @@
 {% if next_serial %}
 <!-- Sequential item counter -->
 <div class="alert alert-secondary mb-3">
-    <strong><i class="bi bi-hash"></i> Item #{{ next_serial }}</strong>
+    <strong><span class="material-symbols-outlined" aria-hidden="true">tag</span> Item #{{ next_serial }}</strong>
     <small class="text-muted ms-2">({{ next_serial|add:"-1" }} items currently in the registry)</small>
 </div>
 {% endif %}
@@ -87,7 +87,7 @@
                 <div class="col-12 mb-3">
                     <div class="card bg-light border-primary">
                         <div class="card-header">
-                            <h6 class="mb-0"><i class="bi bi-calculator"></i> Depreciation Calculator</h6>
+                            <h6 class="mb-0"><span class="material-symbols-outlined" aria-hidden="true">calculate</span> Depreciation Calculator</h6>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -177,7 +177,7 @@
             </div>
 
             <div class="d-grid d-sm-flex gap-2">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save</button>
+                <button type="submit" class="btn btn-primary"><span class="material-symbols-outlined" aria-hidden="true">save</span> Save</button>
                 <a href="{% url 'fixed_assets:fixed_asset_list' %}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>

@@ -22,7 +22,7 @@
             {% endif %}
         </form>
         <a href="{% url 'fixed_assets:upload_excel' %}" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-file-earmark-excel"></i> Import Excel
+            <span class="material-symbols-outlined" aria-hidden="true">table_view</span> Import Excel
         </a>
     </div>
 </div>
@@ -36,49 +36,49 @@
 <!-- KPI cards -->
 <div class="kpi-grid mb-3">
     <div class="card kpi">
-        <div class="kpi-top"><span class="kpi-ico ico-blue"><i class="bi bi-laptop"></i></span></div>
+        <div class="kpi-top"><span class="kpi-ico ico-blue"><span class="material-symbols-outlined" aria-hidden="true">laptop_mac</span></span></div>
         <p class="kpi-label">Fixed Assets</p>
         <p class="val">{{ total_fixed }}</p>
         <p class="sub">{{ disposed_count }} disposed</p>
     </div>
     <div class="card kpi">
-        <div class="kpi-top"><span class="kpi-ico ico-purple"><i class="bi bi-cash-stack"></i></span></div>
+        <div class="kpi-top"><span class="kpi-ico ico-purple"><span class="material-symbols-outlined" aria-hidden="true">account_balance</span></span></div>
         <p class="kpi-label">Purchase Cost</p>
         <p class="val">${{ total_purchase_cost|floatformat:0 }}</p>
         <p class="sub">total acquisition value</p>
     </div>
     <div class="card kpi">
-        <div class="kpi-top"><span class="kpi-ico ico-amber"><i class="bi bi-graph-down-arrow"></i></span></div>
+        <div class="kpi-top"><span class="kpi-ico ico-amber"><span class="material-symbols-outlined" aria-hidden="true">trending_down</span></span></div>
         <p class="kpi-label">Accum. Depreciation</p>
         <p class="val">${{ total_accumulated_depr|floatformat:0 }}</p>
         <p class="sub">recorded to date</p>
     </div>
     <div class="card kpi">
-        <div class="kpi-top"><span class="kpi-ico ico-green"><i class="bi bi-activity"></i></span></div>
+        <div class="kpi-top"><span class="kpi-ico ico-green"><span class="material-symbols-outlined" aria-hidden="true">monitoring</span></span></div>
         <p class="kpi-label">Net Book Value</p>
         <p class="val">${{ total_net_book_value|floatformat:0 }}</p>
         <p class="sub">current portfolio value</p>
     </div>
     <div class="card kpi">
-        <div class="kpi-top"><span class="kpi-ico ico-cyan"><i class="bi bi-cash-coin"></i></span></div>
+        <div class="kpi-top"><span class="kpi-ico ico-cyan"><span class="material-symbols-outlined" aria-hidden="true">currency_exchange</span></span></div>
         <p class="kpi-label">Current Assets</p>
         <p class="val">${{ total_current|floatformat:0 }}</p>
         <p class="sub">cash &amp; receivables</p>
     </div>
     <div class="card kpi">
-        <div class="kpi-top"><span class="kpi-ico ico-grey"><i class="bi bi-boxes"></i></span></div>
+        <div class="kpi-top"><span class="kpi-ico ico-grey"><span class="material-symbols-outlined" aria-hidden="true">inventory_2</span></span></div>
         <p class="kpi-label">Inventory Value</p>
         <p class="val">${{ total_inventory|floatformat:0 }}</p>
         <p class="sub">stock on hand</p>
     </div>
     <div class="card kpi">
-        <div class="kpi-top"><span class="kpi-ico ico-red"><i class="bi bi-exclamation-triangle"></i></span></div>
+        <div class="kpi-top"><span class="kpi-ico ico-red"><span class="material-symbols-outlined" aria-hidden="true">warning</span></span></div>
         <p class="kpi-label">Reorder Alerts</p>
         <p class="val">{{ reorder_needed }}</p>
         <p class="sub">{{ out_of_stock }} out of stock</p>
     </div>
     <div class="card kpi">
-        <div class="kpi-top"><span class="kpi-ico ico-purple"><i class="bi bi-box-arrow-right"></i></span></div>
+        <div class="kpi-top"><span class="kpi-ico ico-purple"><span class="material-symbols-outlined" aria-hidden="true">logout</span></span></div>
         <p class="kpi-label">Disposed</p>
         <p class="val">{{ disposed_count }}</p>
         <p class="sub">retired assets</p>

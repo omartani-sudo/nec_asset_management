@@ -3,11 +3,11 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-12 col-md-8 col-lg-6">
-        <h2 class="mb-4"><i class="bi bi-file-earmark-excel"></i> Import Excel Data</h2>
+        <h2 class="mb-4"><span class="material-symbols-outlined" aria-hidden="true">table_view</span> Import Excel Data</h2>
         <div class="card">
             <div class="card-body p-4">
                 <div class="alert alert-info mb-4">
-                    <h6 class="alert-heading"><i class="bi bi-info-circle"></i> Required Excel Format</h6>
+                    <h6 class="alert-heading"><span class="material-symbols-outlined" aria-hidden="true">info</span> Required Excel Format</h6>
                     <p class="mb-1">The Excel file must contain these sheets:</p>
                     <ul class="mb-0 small">
                         <li><strong>Lists</strong> — Reference data (categories, departments, locations, statuses, units)</li>
@@ -24,7 +24,7 @@
                         {% if form.excel_file.errors %}<div class="text-danger small mt-1">{{ form.excel_file.errors }}</div>{% endif %}
                     </div>
                     <div class="d-grid d-sm-flex gap-2">
-                        <button type="submit" class="btn btn-success"><i class="bi bi-upload"></i> Upload and Import</button>
+                        <button type="submit" class="btn btn-success"><span class="material-symbols-outlined" aria-hidden="true">upload</span> Upload and Import</button>
                         <a href="{% url 'dashboard:dashboard' %}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </form>

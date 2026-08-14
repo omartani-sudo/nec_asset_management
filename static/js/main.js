@@ -18,7 +18,7 @@
     if (themeBtn) {
         function syncThemeIcon() {
             const dark = root.getAttribute('data-theme') === 'dark';
-            themeBtn.innerHTML = dark ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
+            themeBtn.innerHTML = dark ? '<span class="material-symbols-outlined" aria-hidden="true">light_mode</span>' : '<span class="material-symbols-outlined" aria-hidden="true">dark_mode</span>';
             themeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
         }
         themeBtn.addEventListener('click', function () {
