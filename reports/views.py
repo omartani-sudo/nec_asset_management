@@ -14,27 +14,22 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io, base64
 
-def generate_chart_image(labels, values, title, kind='bar'):
-    fig, ax = plt.subplots(figsize=(10, 5))
-    if kind == 'bar':
-        ax.bar([str(l) for l in labels], [float(v) for v in values])
-    else:
-        ax.plot([str(l) for l in labels], [float(v) for v in values], marker='o')
-    ax.set_title(title)
-    ax.tick_params(axis='x', rotation=45)
-    plt.tight_layout()
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    plt.close(fig)
-    return base64.b64encode(buf.read()).decode('utf-8')
-
 def export_to_excel(df, filename):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     with pd.ExcelWriter(response, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Sheet1')
     return response
+
+
+def chart_context(labels, values, title):
+    """JSON-safe context for a Chart.js canvas."""
+    return {
+        'chart_labels': list(labels),
+        'chart_values': [float(v or 0) for v in values],
+        'chart_title': title,
+    }
+
 
 @login_required
 def reports_home(request):
@@ -45,24 +40,27 @@ def asset_status_report(request):
     qs = FixedAsset.objects.values('status__name').annotate(count=Count('id'))
     labels = [r['status__name'] for r in qs]
     values = [r['count'] for r in qs]
-    chart = generate_chart_image(labels, values, 'Asset Status Distribution', kind='bar')
-    return render(request, 'reports/asset_status.html', {'data': qs, 'chart': chart, 'export_url': 'reports:export_asset_status'})
+    context = chart_context(labels, values, 'Asset Status Distribution')
+    context.update({'data': qs, 'export_url': 'reports:export_asset_status'})
+    return render(request, 'reports/asset_status.html', context)
 
 @login_required
 def fixed_assets_by_category(request):
     data = FixedAsset.objects.values('category__name').annotate(count=Count('id'), total_cost=Sum('purchase_cost'), total_nbv=Sum('purchase_cost'))
     labels = [r['category__name'] for r in data]
     values = [float(r['total_cost'] or 0) for r in data]
-    chart = generate_chart_image(labels, values, 'Fixed Assets by Category (Cost)', kind='bar')
-    return render(request, 'reports/fixed_assets_summary.html', {'data': data, 'chart': chart, 'title': 'Fixed Assets by Category', 'export_url': 'reports:export_fixed_assets_category'})
+    context = chart_context(labels, values, 'Fixed Assets by Category (Cost)')
+    context.update({'data': data, 'title': 'Fixed Assets by Category', 'export_url': 'reports:export_fixed_assets_category'})
+    return render(request, 'reports/fixed_assets_summary.html', context)
 
 @login_required
 def fixed_assets_by_department(request):
     data = FixedAsset.objects.values('department__name').annotate(count=Count('id'), total_cost=Sum('purchase_cost'), total_nbv=Sum('purchase_cost'))
     labels = [r['department__name'] for r in data]
     values = [float(r['total_cost'] or 0) for r in data]
-    chart = generate_chart_image(labels, values, 'Fixed Assets by Department (Cost)', kind='bar')
-    return render(request, 'reports/fixed_assets_summary.html', {'data': data, 'chart': chart, 'title': 'Fixed Assets by Department', 'export_url': 'reports:export_fixed_assets_department'})
+    context = chart_context(labels, values, 'Fixed Assets by Department (Cost)')
+    context.update({'data': data, 'title': 'Fixed Assets by Department', 'export_url': 'reports:export_fixed_assets_department'})
+    return render(request, 'reports/fixed_assets_summary.html', context)
 
 @login_required
 def inventory_summary(request):

@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Delete Fixed Assets{% endblock %}
 {% block content %}
-<h2>Delete Fixed Assets</h2>
+<h1 class="page-title mb-3">Delete Fixed Assets</h1>
 <div class="alert alert-danger">
     Are you sure you want to delete these <strong>{{ assets|length }}</strong> asset{{ assets|length|pluralize }}?
     This will also delete their depreciation schedules and cannot be undone.
 </div>
 <div class="card mb-3">
     <div class="card-body table-responsive">
-        <table class="table table-striped">
+        <table class="data table align-middle">
             <thead>
                 <tr><th>Asset ID</th><th>Name</th><th>Category</th><th>Department</th><th>Purchase Cost</th></tr>
             </thead>

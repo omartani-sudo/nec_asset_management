@@ -1,7 +1,9 @@
 {% extends "base.html" %}
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ title }} | NEC Asset Management{% endblock %}
+{% block page_crumb %}{{ title }}{% endblock %}
+{% block page_crumb_sub %}Fixed asset registration{% endblock %}
 {% block content %}
-<h2>{{ title }}</h2>
+<h1 class="page-title">{{ title }}</h1>
 
 {% if asset_id %}
 <!-- Asset ID display (edit mode) -->
@@ -116,24 +118,18 @@
                                 </div>
                             </div>
                             <!-- Results Panel -->
-                            <div class="row mt-2">
-                                <div class="col-12 col-sm-4 mb-2">
-                                    <div class="text-center p-2 bg-white rounded border">
-                                        <label class="form-label fw-bold text-primary mb-1">Annual Depreciation</label>
-                                        <p id="calc-annual-depreciation" class="fs-5 fw-bold text-primary mb-0">—</p>
-                                    </div>
+                            <div class="calc-panel mt-3" aria-live="polite">
+                                <div class="calc-row">
+                                    <span class="k">Annual Depreciation</span>
+                                    <span class="v" id="calc-annual-depreciation">—</span>
                                 </div>
-                                <div class="col-12 col-sm-4 mb-2">
-                                    <div class="text-center p-2 bg-white rounded border">
-                                        <label class="form-label fw-bold text-warning mb-1">Accumulated Depreciation (Year 1)</label>
-                                        <p id="calc-accumulated-depreciation" class="fs-5 fw-bold text-warning mb-0">—</p>
-                                    </div>
+                                <div class="calc-row">
+                                    <span class="k">Accumulated Depreciation (Year 1)</span>
+                                    <span class="v" id="calc-accumulated-depreciation">—</span>
                                 </div>
-                                <div class="col-12 col-sm-4 mb-2">
-                                    <div class="text-center p-2 bg-white rounded border">
-                                        <label class="form-label fw-bold text-success mb-1">Net Book Value</label>
-                                        <p id="calc-net-book-value" class="fs-5 fw-bold text-success mb-0">—</p>
-                                    </div>
+                                <div class="calc-row total">
+                                    <span class="k">Net Book Value</span>
+                                    <span class="v" id="calc-net-book-value">—</span>
                                 </div>
                             </div>
                         </div>

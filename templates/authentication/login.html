@@ -1,19 +1,60 @@
 {% extends "base.html" %}
+{% load static %}
+{% block title %}Sign in | NEC Asset Management{% endblock %}
 {% block unauthenticated_content %}
-<div class="text-center mb-4">
-    <h3><i class="bi bi-building"></i> NEC Asset Management</h3>
-    <p>Please sign in to continue</p>
+<div class="login-page">
+    <div class="login-left">
+        <div class="login-brand">
+            <img src="{% static 'images/nec_logo.jpg' %}" alt="NEC logo">
+            <div>
+                <div class="n">National Electoral Commission</div>
+                <div class="s">Asset Management System · Somaliland</div>
+            </div>
+        </div>
+        <div class="login-headline">
+            <h1>Track every asset.<br>Account for every shilling.</h1>
+            <p>A central registry for fixed assets, current assets and inventory — built to the highest standard of public-sector accountability and transparency.</p>
+        </div>
+        <div class="login-stats">
+            <div class="s"><div class="n">Fixed Assets</div><div class="l">full lifecycle with depreciation</div></div>
+            <div class="s"><div class="n">Inventory</div><div class="l">stock &amp; reorder alerts</div></div>
+            <div class="s"><div class="n">Audit</div><div class="l">every change tracked</div></div>
+        </div>
+    </div>
+    <div class="login-right">
+        <div class="login-card">
+            <div class="logo-row">
+                <img src="{% static 'images/nec_logo.jpg' %}" alt="NEC logo">
+                <div>
+                    <div class="brand-name" style="color:var(--fg)">NEC Asset Registry</div>
+                    <div class="brand-sub">National Electoral Commission</div>
+                </div>
+            </div>
+            <h2>Welcome back</h2>
+            <div class="sub">Sign in to the Asset Registry</div>
+
+            {% if messages %}
+            <div aria-live="polite">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} py-2 mb-3" role="alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input class="form-control" type="text" id="username" name="username" autocomplete="username" required autofocus>
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input class="form-control" type="password" id="password" name="password" autocomplete="current-password" required>
+                </div>
+                <button class="btn btn-primary" type="submit" style="width:100%;padding:12px">Sign In</button>
+            </form>
+            <div class="cell-sub" style="text-align:center;margin-top:18px">Authorised government personnel only</div>
+        </div>
+    </div>
 </div>
-<form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="id_username" class="form-label">Username</label>
-        <input type="text" name="username" class="form-control" id="id_username" required autofocus>
-    </div>
-    <div class="mb-3">
-        <label for="id_password" class="form-label">Password</label>
-        <input type="password" name="password" class="form-control" id="id_password" required>
-    </div>
-    <button type="submit" class="btn btn-primary w-100 mt-2">Login</button>
-</form>
 {% endblock %}

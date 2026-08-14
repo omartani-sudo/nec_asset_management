@@ -1,78 +1,122 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Asset Detail{% endblock %}
+{% block title %}{{ asset.asset_id }} | NEC Asset Management{% endblock %}
+{% block page_crumb %}Asset Detail{% endblock %}
+{% block page_crumb_sub %}{{ asset.asset_id }} · {{ asset.asset_name }}{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3 page-header-row">
-    <h2>Asset Detail: {{ asset.asset_id }}</h2>
+    <div>
+        <h1 class="page-title">{{ asset.asset_id }}</h1>
+        <p class="page-desc mb-0">{{ asset.asset_name }} · {{ asset.category.name }}</p>
+    </div>
     <div>
         {% if user.role == 'admin' or user.role == 'finance' %}
-        <a href="{% url 'fixed_assets:fixed_asset_update' asset.pk %}" class="btn btn-warning me-2"><i class="bi bi-pencil"></i> Edit</a>
+        <a href="{% url 'fixed_assets:fixed_asset_update' asset.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Edit</a>
         {% if not asset.disposal_date %}
         <form method="post" action="{% url 'fixed_assets:fixed_asset_dispose' asset.pk %}" class="d-inline"
               onsubmit="return confirm('Mark {{ asset.asset_id }} as disposed today?');">
             {% csrf_token %}
-            <button type="submit" class="btn btn-outline-danger me-2"><i class="bi bi-box-arrow-right"></i> Dispose</button>
+            <button type="submit" class="btn btn-outline-danger"><i class="bi bi-box-arrow-right"></i> Dispose</button>
         </form>
         {% endif %}
         {% endif %}
-        <a href="{% url 'fixed_assets:fixed_asset_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+        <a href="{% url 'fixed_assets:fixed_asset_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
     </div>
 </div>
 
-<div class="row g-3">
-    <div class="col-12 col-md-8">
+<div class="detail-grid">
+    <div class="d-flex flex-column gap-3">
         <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-12 col-sm-6"><strong>Name:</strong> {{ asset.asset_name }}</div>
-                    <div class="col-12 col-sm-6"><strong>Category:</strong> {{ asset.category.name }}</div>
-                    <div class="col-12 col-sm-6"><strong>Department:</strong> {{ asset.department.name }}</div>
-                    <div class="col-12 col-sm-6"><strong>Location:</strong> {{ asset.location.name }}</div>
-                    <div class="col-12 col-sm-6"><strong>Serial Number:</strong> {{ asset.serial_number|default:"—" }}</div>
-                    <div class="col-12 col-sm-6"><strong>Supplier:</strong> {{ asset.supplier|default:"—" }}</div>
-                    <div class="col-12 col-sm-6"><strong>Purchase Date:</strong> {{ asset.purchase_date }}</div>
-                    <div class="col-12 col-sm-6"><strong>Purchase Cost:</strong> {{ asset.purchase_cost|floatformat:2 }}</div>
-                    <div class="col-12 col-sm-6"><strong>Useful Life:</strong> {{ asset.useful_life }} years</div>
-                    <div class="col-12 col-sm-6"><strong>Salvage Value:</strong> {{ asset.salvage_value|floatformat:2 }}</div>
-                    <div class="col-12 col-sm-6"><strong>Depreciation Method:</strong> {{ asset.get_depreciation_method_display }}</div>
-                    <div class="col-12 col-sm-6"><strong>Status:</strong> {{ asset.status.name }}</div>
-                    <div class="col-12 col-sm-6"><strong>Condition:</strong> {{ asset.get_condition_display }}</div>
-                    <div class="col-12 col-sm-6"><strong>Assigned To:</strong> {% if asset.assigned_to %}{{ asset.assigned_to.get_full_name|default:asset.assigned_to.username }}{% else %}—{% endif %}</div>
-                    <div class="col-12 col-sm-6"><strong>Disposal Date:</strong> {{ asset.disposal_date|default:"—" }}</div>
-                    <div class="col-12 col-sm-6"><strong>Annual Depreciation:</strong> {{ asset.annual_depreciation|floatformat:2 }}</div>
-                    <div class="col-12 col-sm-6"><strong>Accum. Depreciation:</strong> {{ asset.accumulated_depreciation|floatformat:2 }}</div>
-                    <div class="col-12 col-sm-6"><strong>Net Book Value:</strong> {{ asset.net_book_value|floatformat:2 }}</div>
+            <div class="card-head">
+                <h3 class="mb-0">Asset Information</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="info-grid">
+                    <div class="info-item"><span class="k">Name</span><span class="v">{{ asset.asset_name }}</span></div>
+                    <div class="info-item"><span class="k">Category</span><span class="v">{{ asset.category.name }}</span></div>
+                    <div class="info-item"><span class="k">Department</span><span class="v">{{ asset.department.name }}</span></div>
+                    <div class="info-item"><span class="k">Location</span><span class="v">{{ asset.location.name }}</span></div>
+                    <div class="info-item"><span class="k">Serial Number</span><span class="v">{{ asset.serial_number|default:"—" }}</span></div>
+                    <div class="info-item"><span class="k">Supplier</span><span class="v">{{ asset.supplier|default:"—" }}</span></div>
+                    <div class="info-item"><span class="k">Purchase Date</span><span class="v">{{ asset.purchase_date }}</span></div>
+                    <div class="info-item"><span class="k">Purchase Cost</span><span class="v">${{ asset.purchase_cost|floatformat:2 }}</span></div>
+                    <div class="info-item"><span class="k">Useful Life</span><span class="v">{{ asset.useful_life }} years</span></div>
+                    <div class="info-item"><span class="k">Salvage Value</span><span class="v">${{ asset.salvage_value|floatformat:2 }}</span></div>
+                    <div class="info-item"><span class="k">Depreciation Method</span><span class="v">{{ asset.get_depreciation_method_display }}</span></div>
+                    <div class="info-item"><span class="k">Status</span><span class="v">{{ asset.status.name }}</span></div>
+                    <div class="info-item"><span class="k">Condition</span><span class="v">{{ asset.get_condition_display }}</span></div>
+                    <div class="info-item"><span class="k">Assigned To</span><span class="v">{% if asset.assigned_to %}{{ asset.assigned_to.get_full_name|default:asset.assigned_to.username }}{% else %}—{% endif %}</span></div>
+                    <div class="info-item"><span class="k">Disposal Date</span><span class="v">{{ asset.disposal_date|default:"—" }}</span></div>
+                    <div class="info-item"><span class="k">Notes</span><span class="v">{{ asset.notes|default:"—" }}</span></div>
                 </div>
             </div>
         </div>
+
         {% if schedules %}
-            <h3 class="mt-4">Depreciation Schedule</h3>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead><tr><th>Year</th><th>Start Date</th><th>End Date</th><th>Opening NBV</th><th>Depreciation</th><th>Accum. Depr.</th><th>Closing NBV</th></tr></thead>
-                    <tbody>
-                    {% for s in schedules %}
-                    <tr><td data-label="Year">{{ s.year_number }}</td><td data-label="Start Date">{{ s.start_date }}</td><td data-label="End Date">{{ s.end_date }}</td><td data-label="Opening NBV">{{ s.opening_nbv|floatformat:2 }}</td><td data-label="Depreciation">{{ s.annual_depreciation|floatformat:2 }}</td><td data-label="Accum. Depr.">{{ s.accumulated_depreciation|floatformat:2 }}</td><td data-label="Closing NBV">{{ s.closing_nbv|floatformat:2 }}</td></tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+        <div class="card">
+            <div class="card-head">
+                <h3 class="mb-0">Depreciation Schedule</h3>
             </div>
-        {% endif %}
-    </div>
-    <div class="col-12 col-md-4">
-        {% if asset.photo %}
-        <div class="card mb-3">
-            <div class="card-header"><h6 class="mb-0"><i class="bi bi-image"></i> Photo</h6></div>
-            <div class="card-body text-center">
-                <img src="{% url 'media_serve' asset.photo.name %}" alt="{{ asset.asset_name }}" class="img-fluid rounded">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="data table align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Year</th><th scope="col">Start Date</th><th scope="col">End Date</th>
+                                <th scope="col">Opening NBV</th><th scope="col">Depreciation</th>
+                                <th scope="col">Accum. Depr.</th><th scope="col">Closing NBV</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for s in schedules %}
+                        <tr>
+                            <td data-label="Year">{{ s.year_number }}</td>
+                            <td data-label="Start Date">{{ s.start_date }}</td>
+                            <td data-label="End Date">{{ s.end_date }}</td>
+                            <td data-label="Opening NBV" class="mono">${{ s.opening_nbv|floatformat:2 }}</td>
+                            <td data-label="Depreciation" class="mono">${{ s.annual_depreciation|floatformat:2 }}</td>
+                            <td data-label="Accum. Depr." class="mono">${{ s.accumulated_depreciation|floatformat:2 }}</td>
+                            <td data-label="Closing NBV" class="mono">${{ s.closing_nbv|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         {% endif %}
+    </div>
+
+    <div class="d-flex flex-column gap-3">
+        {% if asset.photo %}
         <div class="card">
-            <div class="card-header"><h6 class="mb-0"><i class="bi bi-qr-code"></i> Asset QR Label</h6></div>
-            <div class="card-body text-center">
-                <div id="asset-qr" class="d-inline-block"></div>
-                <p class="small text-muted mt-2 mb-0">Scan to open this asset</p>
+            <div class="photo-card">
+                <img src="{% url 'media_serve' asset.photo.name %}" alt="Photo of {{ asset.asset_name }}">
+                <div class="chip">{{ asset.asset_id }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                <div class="fig-grid">
+                    <div class="fig">
+                        <span class="k">Annual Depreciation</span>
+                        <div class="n">${{ asset.annual_depreciation|floatformat:2 }}</div>
+                    </div>
+                    <div class="fig">
+                        <span class="k">Net Book Value</span>
+                        <div class="n">${{ asset.net_book_value|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="qr-card">
+                <div id="asset-qr" class="d-inline-block" role="img" aria-label="QR code for {{ asset.asset_id }}"></div>
+                <div class="qr-id">{{ asset.asset_id }}</div>
+                <p class="small text-muted mb-0">Scan to open this asset</p>
             </div>
         </div>
     </div>

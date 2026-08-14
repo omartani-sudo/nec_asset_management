@@ -1,12 +1,17 @@
 {% extends "base.html" %}
-{% load static %}
-{% block title %}Dashboard{{ block.super }}{% endblock %}
+{% block title %}Dashboard | NEC Asset Management{% endblock %}
+{% block page_crumb %}Dashboard{% endblock %}
+{% block page_crumb_sub %}Overview of the NEC asset portfolio{% if selected_department %} · {{ selected_department.name }}{% endif %}{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3 page-header-row">
-    <h4 class="mb-0">Dashboard Overview</h4>
     <div>
-        <form method="get" class="d-inline-flex align-items-center gap-2">
-            <select name="department" class="form-select form-select-sm" onchange="this.form.submit()">
+        <h1 class="page-title">Dashboard Overview</h1>
+        <p class="page-desc mb-0">Fixed assets, current assets and inventory at a glance.</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <form method="get" class="d-flex align-items-center gap-2">
+            <label for="department-filter" class="visually-hidden">Filter by department</label>
+            <select name="department" id="department-filter" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">All Departments</option>
                 {% for d in departments %}
                 <option value="{{ d.pk }}" {% if selected_department.pk == d.pk %}selected{% endif %}>{{ d.name }}</option>
@@ -16,125 +21,202 @@
             <a href="{% url 'dashboard:dashboard' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
             {% endif %}
         </form>
-        <a href="{% url 'fixed_assets:upload_excel' %}" class="btn btn-outline-primary">
+        <a href="{% url 'fixed_assets:upload_excel' %}" class="btn btn-outline-primary btn-sm">
             <i class="bi bi-file-earmark-excel"></i> Import Excel
         </a>
     </div>
 </div>
+
 {% if selected_department %}
 <div class="alert alert-info py-2 mb-3">
-    Showing fixed &amp; current asset KPIs for <strong>{{ selected_department.name }}</strong>.
-    Inventory figures are organization-wide.
+    Showing fixed &amp; current asset KPIs for <strong>{{ selected_department.name }}</strong>. Inventory figures are organization-wide.
 </div>
 {% endif %}
-<div class="row mb-4">
-    <div class="col-6 col-sm-6 col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-laptop"></i> Fixed Assets</h5>
-                <p class="card-text display-4">{{ total_fixed }}</p>
+
+<!-- KPI cards -->
+<div class="kpi-grid mb-3">
+    <div class="card kpi">
+        <div class="kpi-top"><span class="kpi-ico ico-blue"><i class="bi bi-laptop"></i></span></div>
+        <p class="kpi-label">Fixed Assets</p>
+        <p class="val">{{ total_fixed }}</p>
+        <p class="sub">{{ disposed_count }} disposed</p>
+    </div>
+    <div class="card kpi">
+        <div class="kpi-top"><span class="kpi-ico ico-purple"><i class="bi bi-cash-stack"></i></span></div>
+        <p class="kpi-label">Purchase Cost</p>
+        <p class="val">${{ total_purchase_cost|floatformat:0 }}</p>
+        <p class="sub">total acquisition value</p>
+    </div>
+    <div class="card kpi">
+        <div class="kpi-top"><span class="kpi-ico ico-amber"><i class="bi bi-graph-down-arrow"></i></span></div>
+        <p class="kpi-label">Accum. Depreciation</p>
+        <p class="val">${{ total_accumulated_depr|floatformat:0 }}</p>
+        <p class="sub">recorded to date</p>
+    </div>
+    <div class="card kpi">
+        <div class="kpi-top"><span class="kpi-ico ico-green"><i class="bi bi-activity"></i></span></div>
+        <p class="kpi-label">Net Book Value</p>
+        <p class="val">${{ total_net_book_value|floatformat:0 }}</p>
+        <p class="sub">current portfolio value</p>
+    </div>
+    <div class="card kpi">
+        <div class="kpi-top"><span class="kpi-ico ico-cyan"><i class="bi bi-cash-coin"></i></span></div>
+        <p class="kpi-label">Current Assets</p>
+        <p class="val">${{ total_current|floatformat:0 }}</p>
+        <p class="sub">cash &amp; receivables</p>
+    </div>
+    <div class="card kpi">
+        <div class="kpi-top"><span class="kpi-ico ico-grey"><i class="bi bi-boxes"></i></span></div>
+        <p class="kpi-label">Inventory Value</p>
+        <p class="val">${{ total_inventory|floatformat:0 }}</p>
+        <p class="sub">stock on hand</p>
+    </div>
+    <div class="card kpi">
+        <div class="kpi-top"><span class="kpi-ico ico-red"><i class="bi bi-exclamation-triangle"></i></span></div>
+        <p class="kpi-label">Reorder Alerts</p>
+        <p class="val">{{ reorder_needed }}</p>
+        <p class="sub">{{ out_of_stock }} out of stock</p>
+    </div>
+    <div class="card kpi">
+        <div class="kpi-top"><span class="kpi-ico ico-purple"><i class="bi bi-box-arrow-right"></i></span></div>
+        <p class="kpi-label">Disposed</p>
+        <p class="val">{{ disposed_count }}</p>
+        <p class="sub">retired assets</p>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="grid-2 mb-3">
+    <div class="card">
+        <div class="card-head">
+            <div>
+                <h3 class="mb-0">Depreciation Trend</h3>
+                <p class="mb-0">Annual depreciation across the portfolio</p>
             </div>
         </div>
-    </div>
-    <div class="col-6 col-sm-6 col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-currency-dollar"></i> Purchase Cost</h5>
-                <p class="card-text display-6">{{ total_purchase_cost|floatformat:2 }}</p>
+        <div class="card-body">
+            <div class="chart-wrap">
+                <canvas id="depreciation-chart" aria-label="Depreciation trend chart" role="img"></canvas>
             </div>
+            <p class="small text-muted mt-2 mb-0" id="chart-summary" aria-live="polite"></p>
         </div>
     </div>
-    <div class="col-6 col-sm-6 col-md-3">
-        <div class="card bg-warning text-dark">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-graph-down"></i> Accum. Depr.</h5>
-                <p class="card-text display-6">{{ total_accumulated_depr|floatformat:2 }}</p>
+    <div class="card">
+        <div class="card-head">
+            <div>
+                <h3 class="mb-0">Assets by Category</h3>
+                <p class="mb-0">Distribution of fixed assets</p>
             </div>
         </div>
-    </div>
-    <div class="col-6 col-sm-6 col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-calculator"></i> Net Book Value</h5>
-                <p class="card-text display-6">{{ total_net_book_value|floatformat:2 }}</p>
+        <div class="card-body">
+            <div class="chart-wrap">
+                <canvas id="category-chart" aria-label="Assets by category donut chart" role="img"></canvas>
             </div>
         </div>
     </div>
 </div>
-<div class="row mb-4">
-    <div class="col-6 col-sm-6 col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-cash"></i> Current Assets</h5>
-                <p class="card-text display-6">{{ total_current|floatformat:2 }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-sm-6 col-md-3">
-        <div class="card bg-secondary text-white">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-box"></i> Inv. Value</h5>
-                <p class="card-text display-6">{{ total_inventory|floatformat:2 }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-sm-6 col-md-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Reorder Needed</h5>
-                <p class="card-text display-4">{{ reorder_needed }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-sm-6 col-md-3">
-        <div class="card bg-dark text-white">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-trash"></i> Disposed</h5>
-                <p class="card-text display-4">{{ disposed_count }}</p>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-12 col-lg-8">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5><i class="bi bi-graph-up"></i> Depreciation Trend (Annual)</h5>
-            </div>
-            <div class="card-body text-center">
-                {% if chart_base64 %}
-                <img src="data:image/png;base64,{{ chart_base64 }}" class="img-fluid" alt="Depreciation Trend" style="max-height: 350px;">
-                {% else %}
-                <div class="text-muted py-5">
-                    <i class="bi bi-bar-chart" style="font-size: 3rem;"></i>
-                    <p class="mt-2">No depreciation data available yet. Add fixed assets with purchase costs to see trends.</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-lg-4">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5><i class="bi bi-pie-chart"></i> Assets by Category</h5>
-            </div>
-            <div class="card-body">
-                {% if category_data %}
-                <div class="list-group list-group-flush">
-                    {% for cat in category_data %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <span>{{ cat.category__name }}</span>
-                        <span class="badge bg-primary rounded-pill">{{ cat.count }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-muted text-center py-3">
-                    <p>No assets categorized yet.</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{{ chart_data|json_script:"chart-data" }}
+{{ category_data|json_script:"category-data" }}
+<script>
+(function () {
+    'use strict';
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+    const categoryData = JSON.parse(document.getElementById('category-data').textContent);
+    const isDark = function () {
+        return document.documentElement.getAttribute('data-theme') === 'dark';
+    };
+    const axisColor = function () {
+        const c = getComputedStyle(document.documentElement).getPropertyValue('--muted-2').trim();
+        return c || '#94a3b8';
+    };
+    const gridColor = function () {
+        const c = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+        return c || '#e6e9f0';
+    };
+
+    if (window.Chart) {
+        // Text alternative for non-visual users
+        const summaryEl = document.getElementById('chart-summary');
+        if (summaryEl) {
+            summaryEl.textContent = 'Annual depreciation: ' + chartData.years.map(function (y, i) {
+                return 'Year ' + y + ': $' + Number(chartData.values[i]).toLocaleString();
+            }).join(', ');
+        }
+
+        // Depreciation trend (line)
+        const depEl = document.getElementById('depreciation-chart');
+        if (depEl) {
+            new Chart(depEl, {
+                type: 'line',
+                data: {
+                    labels: chartData.years.map(function (y) { return 'Year ' + y; }),
+                    datasets: [{
+                        label: 'Annual Depreciation ($)',
+                        data: chartData.values,
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13,110,253,.12)',
+                        fill: true,
+                        tension: .35,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#0d6efd',
+                        borderWidth: 2.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) {
+                                    return ' $' + Number(ctx.raw).toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: axisColor() } },
+                        y: {
+                            grid: { color: gridColor() },
+                            ticks: { color: axisColor(), callback: function (v) { return '$' + Number(v).toLocaleString(); } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Category donut
+        const catEl = document.getElementById('category-chart');
+        if (catEl) {
+            const palette = ['#0d6efd', '#7c3aed', '#0891b2', '#16a34a', '#d97706', '#dc2626', '#64748b'];
+            new Chart(catEl, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryData.map(function (c) { return c.category__name; }),
+                    datasets: [{
+                        data: categoryData.map(function (c) { return c.count; }),
+                        backgroundColor: palette,
+                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: axisColor(), usePointStyle: true, boxWidth: 8, padding: 14 } }
+                    }
+                }
+            });
+        }
+    }
+})();
+</script>
 {% endblock %}

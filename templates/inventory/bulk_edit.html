@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Bulk Edit Inventory Items{% endblock %}
 {% block content %}
-<h2>Bulk Edit Inventory Items</h2>
+<h1 class="page-title mb-3">Bulk Edit Inventory Items</h1>
 <div class="alert alert-info">
     Editing <strong>{{ items|length }}</strong> item{{ items|length|pluralize }}. Leave a field blank to keep its current value.
 </div>
 <div class="card mb-3">
     <div class="card-body table-responsive">
-        <table class="table table-striped">
+        <table class="data table align-middle">
             <thead>
                 <tr><th>Item Code</th><th>Description</th><th>Location</th><th>Reorder Level</th></tr>
             </thead>

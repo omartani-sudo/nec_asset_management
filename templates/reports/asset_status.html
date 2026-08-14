@@ -1,28 +1,81 @@
 {% extends "base.html" %}
-{% block title %}Asset Status{% endblock %}
+{% block title %}Asset Status | NEC Asset Management{% endblock %}
+{% block page_crumb %}Reports{% endblock %}
+{% block page_crumb_sub %}Asset Status Distribution{% endblock %}
 {% block content %}
-<h2>Asset Status Distribution
+<div class="d-flex justify-content-between align-items-center mb-3 page-header-row">
+    <div>
+        <h1 class="page-title">Asset Status Distribution</h1>
+        <p class="page-desc mb-0">Fixed assets by status.</p>
+    </div>
     {% if export_url %}
-    <a href="{% url export_url %}" class="btn btn-success float-end">Export Excel</a>
-    {% endif %}
-</h2>
-<div class="row">
-    <div class="col-12 col-md-5">
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead><tr><th>Status</th><th>Count</th></tr></thead>
-                <tbody>
-                {% for r in data %}
-                <tr><td data-label="Status">{{ r.status__name }}</td><td data-label="Count">{{ r.count }}</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% if chart %}
-    <div class="col-12 col-md-7 report-chart-col">
-        <img src="data:image/png;base64,{{ chart }}" class="img-fluid" alt="Asset Status">
-    </div>
+    <a href="{% url export_url %}" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Export Excel</a>
     {% endif %}
 </div>
+
+<div class="grid-2">
+    <div class="card">
+        <div class="card-head">
+            <h3 class="mb-0">Summary</h3>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="data table align-middle">
+                    <thead><tr><th scope="col">Status</th><th scope="col">Count</th></tr></thead>
+                    <tbody>
+                    {% for r in data %}
+                    <tr><td data-label="Status">{{ r.status__name }}</td><td data-label="Count">{{ r.count }}</td></tr>
+                    {% empty %}
+                    <tr><td colspan="2" class="text-center text-muted">No data.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-head">
+            <h3 class="mb-0">{{ chart_title }}</h3>
+        </div>
+        <div class="card-body">
+            <div class="chart-wrap">
+                <canvas id="report-chart" aria-label="{{ chart_title }}" role="img"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{{ chart_labels|json_script:"report-chart-labels" }}
+{{ chart_values|json_script:"report-chart-values" }}
+<script>
+(function () {
+    'use strict';
+    var el = document.getElementById('report-chart');
+    if (!el || !window.Chart) return;
+    var labels = JSON.parse(document.getElementById('report-chart-labels').textContent);
+    var values = JSON.parse(document.getElementById('report-chart-values').textContent);
+    var palette = ['#0d6efd', '#16a34a', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#64748b'];
+    new Chart(el, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Assets',
+                data: values,
+                backgroundColor: labels.map(function (_, i) { return palette[i % palette.length]; }),
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
+        }
+    });
+})();
+</script>
 {% endblock %}

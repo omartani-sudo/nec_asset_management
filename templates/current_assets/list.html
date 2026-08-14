@@ -1,125 +1,146 @@
 {% extends "base.html" %}
-{% block title %}Current Assets{% endblock %}
+{% block title %}Current Assets | NEC Asset Management{% endblock %}
+{% block page_crumb %}Current Assets{% endblock %}
+{% block page_crumb_sub %}Liquid assets and short-term holdings{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3 page-header-row">
-    <h2>Current Assets</h2>
     <div>
-        {% if can_delete %}
-        <button type="submit" form="bulk-delete-form" class="btn btn-danger me-2" id="bulk-delete-btn" disabled>
-            <i class="bi bi-trash"></i> Delete Selected
-        </button>
-        {% endif %}
+        <h1 class="page-title">Current Assets</h1>
+        <p class="page-desc mb-0">{{ page_obj.paginator.count }} asset{{ page_obj.paginator.count|pluralize }} recorded.</p>
+    </div>
+    <div>
         {% if can_edit %}
-        <button type="submit" form="bulk-delete-form" formaction="{% url 'current_assets:current_asset_bulk_edit' %}" class="btn btn-outline-primary me-2" id="bulk-edit-btn" disabled>
-            <i class="bi bi-pencil-square"></i> Bulk Edit
-        </button>
+        <a href="{% url 'current_assets:current_asset_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Asset</a>
         {% endif %}
-        <a href="{% url 'current_assets:current_asset_export' %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn btn-outline-success me-2"><i class="bi bi-file-earmark-excel"></i> Export</a>
-        {% if can_edit %}
-        <a href="{% url 'current_assets:current_asset_create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> Add Asset</a>
-        {% endif %}
+        <a href="{% url 'current_assets:current_asset_export' %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn btn-outline-success"><i class="bi bi-file-earmark-excel"></i> Export</a>
     </div>
 </div>
 
-<!-- Filter / search bar -->
-<div class="card mb-3">
-    <div class="card-header py-2 d-flex justify-content-between align-items-center">
-        <a class="text-decoration-none" data-bs-toggle="collapse" href="#filterCollapse" role="button" aria-expanded="false">
-            <i class="bi bi-funnel"></i> Filter &amp; Search
-            {% if query_string %}<span class="badge bg-primary ms-1">active</span>{% endif %}
-        </a>
-        {% if query_string %}<a href="{% url 'current_assets:current_asset_list' %}" class="btn btn-sm btn-outline-secondary">Clear</a>{% endif %}
-    </div>
-    <div class="collapse" id="filterCollapse">
-        <div class="card-body">
-            <form method="get" class="row g-2">
-                <div class="col-12 col-md-4">
-                    <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Search ID or description...">
-                </div>
-                <div class="col-6 col-md-2">
-                    <select name="category" class="form-select">
-                        <option value="">All Categories</option>
-                        {% for c in categories %}<option value="{{ c.pk }}" {% if request.GET.category == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <select name="department" class="form-select">
-                        <option value="">All Departments</option>
-                        {% for d in departments %}<option value="{{ d.pk }}" {% if request.GET.department == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <select name="status" class="form-select">
-                        <option value="">All Statuses</option>
-                        {% for s in statuses %}<option value="{{ s.pk }}" {% if request.GET.status == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <select name="location" class="form-select">
-                        <option value="">All Locations</option>
-                        {% for l in locations %}<option value="{{ l.pk }}" {% if request.GET.location == l.pk|stringformat:"s" %}selected{% endif %}>{{ l.name }}</option>{% endfor %}
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <input type="date" name="date_from" value="{{ request.GET.date_from }}" class="form-control" title="Recorded from">
-                </div>
-                <div class="col-6 col-md-2">
-                    <input type="date" name="date_to" value="{{ request.GET.date_to }}" class="form-control" title="Recorded to">
-                </div>
-                <div class="col-6 col-md-2">
-                    <select name="sort" class="form-select">
-                        <option value="">Sort: Default</option>
-                        {% for key, field in sort_map.items %}
-                        <option value="{{ key }}" {% if request.GET.sort == key %}selected{% endif %}>Sort: {{ key|title }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <select name="dir" class="form-select">
-                        <option value="asc" {% if request.GET.dir != 'desc' %}selected{% endif %}>Ascending</option>
-                        <option value="desc" {% if request.GET.dir == 'desc' %}selected{% endif %}>Descending</option>
-                    </select>
-                </div>
-                <div class="col-12 col-md-2 d-grid">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Apply</button>
-                </div>
-            </form>
+<div class="bulk-bar mb-3 no-print">
+    <i class="bi bi-check2-square"></i>
+    <span class="n" id="selection-count">0 selected</span>
+    <span class="header-spacer"></span>
+    {% if can_edit %}
+    <button type="submit" form="bulk-delete-form" formaction="{% url 'current_assets:current_asset_bulk_edit' %}" class="btn btn-sm btn-outline-primary" id="bulk-edit-btn" disabled>
+        <i class="bi bi-pencil-square"></i> Bulk Edit
+    </button>
+    {% endif %}
+    {% if can_delete %}
+    <button type="submit" form="bulk-delete-form" class="btn btn-sm btn-danger" id="bulk-delete-btn" disabled>
+        <i class="bi bi-trash"></i> Delete Selected
+    </button>
+    {% endif %}
+</div>
+
+<div class="filter-bar mb-3">
+    <form method="get" class="filter-row">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <label for="q-current" class="visually-hidden">Search current assets</label>
+            <input type="text" id="q-current" name="q" value="{{ request.GET.q }}" placeholder="Search ID or description...">
         </div>
-    </div>
+        <label for="c-category" class="visually-hidden">Filter by category</label>
+        <select id="c-category" name="category" aria-label="Filter by category">
+            <option value="">All Categories</option>
+            {% for c in categories %}<option value="{{ c.pk }}" {% if request.GET.category == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+        <label for="c-department" class="visually-hidden">Filter by department</label>
+        <select id="c-department" name="department" aria-label="Filter by department">
+            <option value="">All Departments</option>
+            {% for d in departments %}<option value="{{ d.pk }}" {% if request.GET.department == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+        </select>
+        <label for="c-status" class="visually-hidden">Filter by status</label>
+        <select id="c-status" name="status" aria-label="Filter by status">
+            <option value="">All Statuses</option>
+            {% for s in statuses %}<option value="{{ s.pk }}" {% if request.GET.status == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+        </select>
+        <label for="c-location" class="visually-hidden">Filter by location</label>
+        <select id="c-location" name="location" aria-label="Filter by location">
+            <option value="">All Locations</option>
+            {% for l in locations %}<option value="{{ l.pk }}" {% if request.GET.location == l.pk|stringformat:"s" %}selected{% endif %}>{{ l.name }}</option>{% endfor %}
+        </select>
+    </form>
+    <form method="get" class="filter-row">
+        {% for key, value in request.GET.items %}
+            {% if key not in 'page,sort,dir' %}{% if key != 'date_from' and key != 'date_to' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endif %}
+        {% endfor %}
+        <label for="c-date-from" class="visually-hidden">Recorded from</label>
+        <input type="date" id="c-date-from" name="date_from" value="{{ request.GET.date_from }}" aria-label="Recorded from date">
+        <span class="text-muted">to</span>
+        <label for="c-date-to" class="visually-hidden">Recorded to</label>
+        <input type="date" id="c-date-to" name="date_to" value="{{ request.GET.date_to }}" aria-label="Recorded to date">
+        <label for="c-sort" class="visually-hidden">Sort by</label>
+        <select id="c-sort" name="sort" aria-label="Sort by">
+            <option value="">Sort: Default</option>
+            {% for key, field in sort_map.items %}
+            <option value="{{ key }}" {% if request.GET.sort == key %}selected{% endif %}>Sort: {{ key|title }}</option>
+            {% endfor %}
+        </select>
+        <label for="c-dir" class="visually-hidden">Sort direction</label>
+        <select id="c-dir" name="dir" aria-label="Sort direction">
+            <option value="asc" {% if request.GET.dir != 'desc' %}selected{% endif %}>Ascending</option>
+            <option value="desc" {% if request.GET.dir == 'desc' %}selected{% endif %}>Descending</option>
+        </select>
+        <button type="submit" class="btn btn-primary apply-btn"><i class="bi bi-funnel"></i> Apply</button>
+        {% if query_string %}<a href="{% url 'current_assets:current_asset_list' %}" class="btn btn-outline-secondary apply-btn">Clear</a>{% endif %}
+    </form>
 </div>
 
 <div class="card">
-    <div class="card-body">
+    <div class="card-body p-0">
         <form id="bulk-delete-form" method="post" action="{% url 'current_assets:current_asset_bulk_delete' %}">
             {% csrf_token %}
             {% if query_string %}<input type="hidden" name="next_qs" value="{{ query_string }}">{% endif %}
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="data table align-middle">
                     <thead>
                         <tr>
                             {% if can_delete or can_edit %}
-                            <th><input type="checkbox" id="select-all" title="Select all"></th>
+                            <th scope="col"><input type="checkbox" id="select-all" aria-label="Select all assets" title="Select all"></th>
                             {% endif %}
-                            <th>Asset ID</th><th>Description</th><th>Category</th><th>Department</th><th>Date</th><th>Value</th><th>Status</th><th>Actions</th>
+                            <th scope="col">Asset ID</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Department</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Value</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="visually-hidden">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                     {% for asset in assets %}
                     <tr>
                         {% if can_delete or can_edit %}
-                        <td class="checkbox-cell" data-label="Select"><input type="checkbox" name="asset_ids" value="{{ asset.pk }}" class="asset-check"></td>
+                        <td class="checkbox-cell" data-label="Select"><input type="checkbox" name="asset_ids" value="{{ asset.pk }}" class="asset-check checkbox" aria-label="Select {{ asset.asset_id }}"></td>
                         {% endif %}
-                        <td data-label="Asset ID">{{ asset.asset_id }}</td><td data-label="Description">{{ asset.description }}</td><td data-label="Category">{{ asset.category.name }}</td><td data-label="Department">{{ asset.department.name }}</td><td data-label="Date">{{ asset.date_recorded }}</td><td data-label="Value">{{ asset.value|floatformat:2 }}</td><td data-label="Status">{{ asset.status.name }}</td><td data-label="Actions">
-                            {% if can_edit %}
-                            <a href="{% url 'current_assets:current_asset_update' asset.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                            {% endif %}
-                            {% if can_delete %}
-                            <a href="{% url 'current_assets:current_asset_delete' asset.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
-                            {% endif %}
+                        <td data-label="Asset ID"><span class="cell-id">{{ asset.asset_id }}</span></td>
+                        <td data-label="Description">{{ asset.description }}</td>
+                        <td data-label="Category">{{ asset.category.name }}</td>
+                        <td data-label="Department">{{ asset.department.name }}</td>
+                        <td data-label="Date" class="mono">{{ asset.date_recorded }}</td>
+                        <td data-label="Value" class="mono">${{ asset.value|floatformat:2 }}</td>
+                        <td data-label="Status">
+                            <span class="badge bg-success"><span class="b-dot"></span>{{ asset.status.name }}</span>
+                        </td>
+                        <td data-label="Actions" class="actions-cell">
+                            <div class="row-actions">
+                                {% if can_edit %}
+                                <a href="{% url 'current_assets:current_asset_update' asset.pk %}" class="mini-btn" aria-label="Edit {{ asset.asset_id }}"><i class="bi bi-pencil"></i></a>
+                                {% endif %}
+                                {% if can_delete %}
+                                <a href="{% url 'current_assets:current_asset_delete' asset.pk %}" class="mini-btn text-danger" aria-label="Delete {{ asset.asset_id }}"><i class="bi bi-trash"></i></a>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="{% if can_delete or can_edit %}9{% else %}8{% endif %}" class="text-center">No assets found.{% if query_string %} Try clearing the filters.{% endif %}</td></tr>
+                    <tr><td colspan="{% if can_delete or can_edit %}9{% else %}8{% endif %}" class="text-center">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p class="mb-0">No assets found.{% if query_string %} Try clearing the filters.{% endif %}</p>
+                        </div>
+                    </td></tr>
                     {% endfor %}
                     </tbody>
                 </table>

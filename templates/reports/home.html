@@ -1,57 +1,53 @@
 {% extends "base.html" %}
-{% block title %}Reports{% endblock %}
+{% block title %}Reports | NEC Asset Management{% endblock %}
+{% block page_crumb %}Reports{% endblock %}
+{% block page_crumb_sub %}Generate and export reports{% endblock %}
 {% block content %}
-<h2>Reports</h2>
-<div class="row g-3">
-    <div class="col-12 col-sm-6 col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Fixed Assets by Category</h5>
-                <p class="card-text">Summary of fixed assets grouped by category.</p>
-                <a href="{% url 'reports:fixed_assets_by_category' %}" class="btn btn-primary">View Report</a>
-                <a href="{% url 'reports:export_fixed_assets_category' %}" class="btn btn-success">Export Excel</a>
-            </div>
+<div class="mb-3">
+    <h1 class="page-title">Reports</h1>
+    <p class="page-desc mb-0">Pre-built summaries with Excel export.</p>
+</div>
+
+<div class="report-grid">
+    <a href="{% url 'reports:fixed_assets_by_category' %}" class="card report-tile">
+        <span class="report-ico ico-blue"><i class="bi bi-grid"></i></span>
+        <div>
+            <h3 class="h5 fw-bold mb-1">Fixed Assets by Category</h3>
+            <p class="text-muted small mb-0">Cost summary grouped by category.</p>
         </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Fixed Assets by Department</h5>
-                <p class="card-text">Summary of fixed assets grouped by department.</p>
-                <a href="{% url 'reports:fixed_assets_by_department' %}" class="btn btn-primary">View Report</a>
-                <a href="{% url 'reports:export_fixed_assets_department' %}" class="btn btn-success">Export Excel</a>
-            </div>
+        <span class="small text-muted">View report →</span>
+    </a>
+    <a href="{% url 'reports:fixed_assets_by_department' %}" class="card report-tile">
+        <span class="report-ico ico-purple"><i class="bi bi-diagram-3"></i></span>
+        <div>
+            <h3 class="h5 fw-bold mb-1">Fixed Assets by Department</h3>
+            <p class="text-muted small mb-0">Cost summary grouped by department.</p>
         </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Asset Status Summary</h5>
-                <p class="card-text">Distribution of assets by status.</p>
-                <a href="{% url 'reports:asset_status_report' %}" class="btn btn-primary">View Report</a>
-                <a href="{% url 'reports:export_asset_status' %}" class="btn btn-success">Export Excel</a>
-            </div>
+        <span class="small text-muted">View report →</span>
+    </a>
+    <a href="{% url 'reports:asset_status_report' %}" class="card report-tile">
+        <span class="report-ico ico-green"><i class="bi bi-pie-chart"></i></span>
+        <div>
+            <h3 class="h5 fw-bold mb-1">Asset Status Summary</h3>
+            <p class="text-muted small mb-0">Distribution of assets by status.</p>
         </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Inventory Summary</h5>
-                <p class="card-text">Summary of inventory by category.</p>
-                <a href="{% url 'reports:inventory_summary' %}" class="btn btn-primary">View Report</a>
-                <a href="{% url 'reports:export_inventory_summary' %}" class="btn btn-success">Export Excel</a>
-            </div>
+        <span class="small text-muted">View report →</span>
+    </a>
+    <a href="{% url 'reports:inventory_summary' %}" class="card report-tile">
+        <span class="report-ico ico-cyan"><i class="bi bi-box-seam"></i></span>
+        <div>
+            <h3 class="h5 fw-bold mb-1">Inventory Summary</h3>
+            <p class="text-muted small mb-0">Stock value by category.</p>
         </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Reorder List</h5>
-                <p class="card-text">Items requiring reorder.</p>
-                <a href="{% url 'reports:reorder_report' %}" class="btn btn-warning">View Report</a>
-                <a href="{% url 'reports:export_reorder_list' %}" class="btn btn-success">Export Excel</a>
-            </div>
+        <span class="small text-muted">View report →</span>
+    </a>
+    <a href="{% url 'reports:reorder_report' %}" class="card report-tile">
+        <span class="report-ico ico-amber"><i class="bi bi-exclamation-triangle"></i></span>
+        <div>
+            <h3 class="h5 fw-bold mb-1">Reorder List</h3>
+            <p class="text-muted small mb-0">Items at or below reorder level.</p>
         </div>
-    </div>
+        <span class="small text-muted">View report →</span>
+    </a>
 </div>
 {% endblock %}

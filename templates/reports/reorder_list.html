@@ -5,7 +5,7 @@
     <a href="{% url 'reports:export_reorder_list' %}" class="btn btn-success float-sm-end">Export Excel</a>
 </h2>
 <div class="table-responsive">
-    <table class="table table-striped">
+    <table class="data table align-middle">
         <thead><tr><th>Item Code</th><th>Description</th><th>Balance Qty</th><th>Reorder Level</th></tr></thead>
         <tbody>
         {% for item in items %}
