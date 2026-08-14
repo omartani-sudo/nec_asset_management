@@ -202,6 +202,14 @@ Year 2: Opening NBV=$2,400 → Annual Dep=$600 → Closing NBV=$1,800
 Year 5: Opening NBV=$600  → Annual Dep=$600 → Closing NBV=$0
 ```
 
+### Design & UX
+
+- **Design system**: CSS-variable tokens (colors, spacing, radii, shadows) with institutional blue `#0d6efd`, Inter typography, and a **light/dark theme toggle** (persisted)
+- **Google Material Symbols** icon set throughout the UI
+- **World-class app shell**: collapsible sidebar with user block, sticky header with breadcrumbs, skip-to-content link and landmarks
+- **Mobile-first**: tables become labeled stacked cards on phones, 44px touch targets, full-width filter bars
+- **Accessibility (WCAG 2.1 AA)**: accessible names on all icon buttons and checkboxes, visible focus rings, contrast-safe status colors, `aria-live` calculator and chart summaries, error messages shown on login
+
 ### Audit Trail
 
 All business models include:
@@ -217,7 +225,7 @@ All business models include:
 
 - **8 KPI Cards**: Fixed Assets count, Purchase Cost, Accumulated Depreciation, Net Book Value, Current Assets value, Inventory value, Reorder alerts, Disposed assets
 - **Department filter**: dropdown at the top scopes all fixed/current asset KPIs, category breakdown and the trend chart to one department
-- **Depreciation Trend Chart**: Matplotlib-generated line chart with annual depreciation projections (base64-embedded PNG)
+- **Interactive Charts**: Chart.js line + donut charts with hover tooltips and a text alternative for screen readers
 - **Category Breakdown**: Asset distribution by category with counts
 
 ### Fixed Assets
@@ -332,8 +340,8 @@ The import process:
 | **WSGI Server** | Gunicorn | 23.0.0 | Production WSGI with 3 workers |
 | **Static Files** | WhiteNoise | 6.12.0 | Compressed, cache-busted static serving |
 | **Reverse Proxy** | Traefik | v3.6 | SSL termination, routing, Let's Encrypt |
-| **Frontend** | Bootstrap 5 + Icons | 5.3.2 / 1.11.1 | Responsive UI framework |
-| **Charts** | Matplotlib | 3.11.1 | Server-side chart generation (PNG) |
+| **Frontend** | Bootstrap 5 + Material Symbols | 5.3.2 | Responsive UI framework + Google icon font |
+| **Charts** | Chart.js | 4.4.3 | Interactive client-side charts (CDN) |
 | **Data Processing** | Pandas | 3.0.5 | Excel import/export |
 | **Excel Export** | OpenPyXL | 3.1.5 | Report generation |
 | **Date Utilities** | python-dateutil | 2.9.0 | Depreciation schedule date arithmetic |
@@ -587,7 +595,7 @@ docker compose exec web python manage.py makemigrations --check --dry-run
 docker compose exec web python manage.py collectstatic --noinput --dry-run
 
 # Run specific test
-docker compose exec web python manage.py test tests.test_api tests.test_bulk_delete
+docker compose exec web python manage.py test tests.test_api tests.test_bulk_delete tests.test_filters_pagination tests.test_audit tests.test_exports tests.test_bulk_edit tests.test_disposal tests.test_photos tests.test_qr_print tests.test_reorder_alerts tests.test_dashboard_filter
 ```
 
 ---
@@ -712,6 +720,8 @@ http:
 | **Session** | HttpOnly + Secure + SameSite=Lax | 12-hour expiry |
 | **API Auth** | JWT (HS256, rotated + blacklisted refresh) | 12h access / 1d refresh |
 | **Password Hashing** | Django PBKDF2 (default) | Salted + iterated |
+| **API Responses** | JSON-only renderer in production (browsable API disabled) | `Content-Type: application/json` |
+| **User Data Privacy** | Email/phone hidden from viewer/user roles in the users API | PII-limited serializer |
 | **SQL Injection** | Django ORM parameterized queries | Prepared statements |
 | **XSS** | Django template auto-escaping | Output encoding |
 | **Delete Protection** | Deletes (single + bulk, web + API) restricted to the admin role | 403 / redirect for other roles |
@@ -864,7 +874,10 @@ nec_asset_management/
 ├── tests/
 │   ├── __init__.py
 │   ├── test_api.py                # API integration tests
-│   └── test_bulk_delete.py        # Bulk delete + role-gating tests
+│   ├── test_bulk_delete.py        # Bulk delete + role-gating tests
+│   └── test_*.py                  # Filters/pagination, audit, exports, bulk edit,
+│                                  #   disposal, photos, QR print, reorder emails,
+│                                  #   dashboard filter (10 suites, 81 tests)
 │
 ├── NEC Asset registration -Final.xlsx  # Reference data source
 ├── Dockerfile                     # Multi-stage Docker build
