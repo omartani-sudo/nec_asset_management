@@ -130,7 +130,7 @@
                             <td data-label="Name"><a href="{% url 'fixed_assets:fixed_asset_detail' asset.pk %}" class="fw-semibold">{{ asset.asset_name }}</a></td>
                             <td data-label="Category">{{ asset.category.name }}</td>
                             <td data-label="Department">{{ asset.department.name }}</td>
-                            <td data-label="Purchase Date" class="mono">{{ asset.purchase_date }}</td>
+                            <td data-label="Purchase Date" class="mono">{{ asset.purchase_date|date:"d M Y" }}</td>
                             <td data-label="Cost" class="mono">${{ asset.purchase_cost|floatformat:2 }}</td>
                             <td data-label="NBV" class="mono">${{ asset.net_book_value|floatformat:2 }}</td>
                             <td data-label="Status">

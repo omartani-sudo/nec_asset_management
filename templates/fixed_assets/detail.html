@@ -38,7 +38,7 @@
                     <div class="info-item"><span class="k">Location</span><span class="v">{{ asset.location.name }}</span></div>
                     <div class="info-item"><span class="k">Serial Number</span><span class="v">{{ asset.serial_number|default:"—" }}</span></div>
                     <div class="info-item"><span class="k">Supplier</span><span class="v">{{ asset.supplier|default:"—" }}</span></div>
-                    <div class="info-item"><span class="k">Purchase Date</span><span class="v">{{ asset.purchase_date }}</span></div>
+                    <div class="info-item"><span class="k">Purchase Date</span><span class="v">{{ asset.purchase_date|date:"d M Y" }}</span></div>
                     <div class="info-item"><span class="k">Purchase Cost</span><span class="v">${{ asset.purchase_cost|floatformat:2 }}</span></div>
                     <div class="info-item"><span class="k">Useful Life</span><span class="v">{{ asset.useful_life }} years</span></div>
                     <div class="info-item"><span class="k">Salvage Value</span><span class="v">${{ asset.salvage_value|floatformat:2 }}</span></div>
@@ -46,7 +46,7 @@
                     <div class="info-item"><span class="k">Status</span><span class="v">{{ asset.status.name }}</span></div>
                     <div class="info-item"><span class="k">Condition</span><span class="v">{{ asset.get_condition_display }}</span></div>
                     <div class="info-item"><span class="k">Assigned To</span><span class="v">{% if asset.assigned_to %}{{ asset.assigned_to.get_full_name|default:asset.assigned_to.username }}{% else %}—{% endif %}</span></div>
-                    <div class="info-item"><span class="k">Disposal Date</span><span class="v">{{ asset.disposal_date|default:"—" }}</span></div>
+                    <div class="info-item"><span class="k">Disposal Date</span><span class="v">{% if asset.disposal_date %}{{ asset.disposal_date|date:"d M Y" }}{% else %}—{% endif %}</span></div>
                     <div class="info-item"><span class="k">Notes</span><span class="v">{{ asset.notes|default:"—" }}</span></div>
                 </div>
             </div>
@@ -71,8 +71,8 @@
                         {% for s in schedules %}
                         <tr>
                             <td data-label="Year">{{ s.year_number }}</td>
-                            <td data-label="Start Date">{{ s.start_date }}</td>
-                            <td data-label="End Date">{{ s.end_date }}</td>
+                            <td data-label="Start Date">{{ s.start_date|date:"d M Y" }}</td>
+                            <td data-label="End Date">{{ s.end_date|date:"d M Y" }}</td>
                             <td data-label="Opening NBV" class="mono">${{ s.opening_nbv|floatformat:2 }}</td>
                             <td data-label="Depreciation" class="mono">${{ s.annual_depreciation|floatformat:2 }}</td>
                             <td data-label="Accum. Depr." class="mono">${{ s.accumulated_depreciation|floatformat:2 }}</td>

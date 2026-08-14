@@ -118,7 +118,7 @@
                         <td data-label="Description">{{ asset.description }}</td>
                         <td data-label="Category">{{ asset.category.name }}</td>
                         <td data-label="Department">{{ asset.department.name }}</td>
-                        <td data-label="Date" class="mono">{{ asset.date_recorded }}</td>
+                        <td data-label="Date" class="mono">{{ asset.date_recorded|date:"d M Y" }}</td>
                         <td data-label="Value" class="mono">${{ asset.value|floatformat:2 }}</td>
                         <td data-label="Status">
                             <span class="badge bg-success"><span class="b-dot"></span>{{ asset.status.name }}</span>

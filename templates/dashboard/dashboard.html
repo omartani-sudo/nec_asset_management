@@ -181,10 +181,10 @@
                         }
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: axisColor() } },
+                        x: { grid: { display: false }, ticks: { color: axisColor(), font: { size: 12 } } },
                         y: {
                             grid: { color: gridColor() },
-                            ticks: { color: axisColor(), callback: function (v) { return '$' + Number(v).toLocaleString(); } }
+                            ticks: { color: axisColor(), font: { size: 12 }, callback: function (v) { return '$' + Number(v).toLocaleString(); } }
                         }
                     }
                 }
