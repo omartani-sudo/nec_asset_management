@@ -18,7 +18,7 @@ def login_view(request):
 
         if cache.get(lock_key, 0) >= LOGIN_MAX_ATTEMPTS:
             messages.error(request, 'Too many failed login attempts. Please try again in 15 minutes.')
-            return render(request, 'authentication/login.html')
+            return render(request, 'authentication/login.html', status=429)
 
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
