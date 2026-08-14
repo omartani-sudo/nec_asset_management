@@ -24,7 +24,7 @@ class ExcelUploadForm(forms.Form):
                 raise forms.ValidationError(
                     'Invalid file type. Only .xlsx files are accepted.'
                 )
-            # Validate size (10 MB limit)
+            # Validate size (10 MB limit, compressed)
             max_size = 10 * 1024 * 1024
             if excel_file.size > max_size:
                 raise forms.ValidationError(
@@ -37,8 +37,24 @@ class ExcelUploadForm(forms.Form):
             )
             if hasattr(excel_file, 'content_type') and excel_file.content_type:
                 if excel_file.content_type not in allowed_mimes:
-                    # Don't reject — some browsers/systems report wrong MIME
-                    pass
+                    raise forms.ValidationError(
+                        'Invalid file type. Only .xlsx files are accepted.'
+                    )
+            # Zip-bomb guard: cap total uncompressed size before pandas reads it
+            try:
+                import zipfile
+                excel_file.seek(0)
+                with zipfile.ZipFile(excel_file) as zf:
+                    total_uncompressed = sum(info.file_size for info in zf.infolist())
+                if total_uncompressed > 100 * 1024 * 1024:
+                    raise forms.ValidationError(
+                        'File too large when decompressed. Maximum is 100 MB.'
+                    )
+                excel_file.seek(0)
+            except zipfile.BadZipFile:
+                raise forms.ValidationError(
+                    'Invalid file. Not a valid .xlsx workbook.'
+                )
         return excel_file
 
 

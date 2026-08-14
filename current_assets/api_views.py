@@ -31,7 +31,7 @@ class CurrentAssetViewSet(viewsets.ModelViewSet):
         ids = request.data.get('ids', [])
         if not isinstance(ids, list):
             return Response({'error': '"ids" must be a list of asset IDs.'}, status=status.HTTP_400_BAD_REQUEST)
-        ids = [i for i in ids if isinstance(i, int)]
+        ids = [i for i in ids if isinstance(i, int) and not isinstance(i, bool)]
         count = CurrentAsset.objects.filter(pk__in=ids).count()
         with transaction.atomic():
             CurrentAsset.objects.filter(pk__in=ids).delete()

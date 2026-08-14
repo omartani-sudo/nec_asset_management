@@ -18,11 +18,16 @@ ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=[])
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
 
-# Database
+# Database (required — fail loudly instead of falling back to weak defaults)
 DATABASES = {
-    'default': env.db('DATABASE_URL', default='postgres://nec_user:nec_secure_pass@localhost:5432/nec_asset_management')
+    'default': env.db('DATABASE_URL')
 }
 DATABASES['default']['CONN_MAX_AGE'] = env.int('DB_CONN_MAX_AGE', default=600)
+
+# API responses: JSON only in production (disable the browsable HTML API)
+REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
+    'rest_framework.renderers.JSONRenderer',
+]
 
 # Security settings
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=True)

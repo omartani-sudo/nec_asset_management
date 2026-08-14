@@ -4,8 +4,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import get_user_model
-from .serializers import UserSerializer, UserCreateSerializer, LoginSerializer, ChangePasswordSerializer
-from nec_asset_management.settings.base import IsAdminUser, IsFinanceOrAdmin, IsViewerOrAbove
+from .serializers import UserSerializer, UserLimitedSerializer, UserCreateSerializer, LoginSerializer, ChangePasswordSerializer
+from .throttles import LoginRateThrottle
+from nec_asset_management.settings.base import IsAdminUser, IsViewerOrAbove
 
 User = get_user_model()
 
@@ -17,6 +18,12 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return UserCreateSerializer
+        if self.action in ['list', 'retrieve']:
+            # PII (email, phone) is only visible to admin/finance roles
+            role = getattr(self.request.user, 'role', None)
+            if role in ('admin', 'finance'):
+                return UserSerializer
+            return UserLimitedSerializer
         return UserSerializer
 
     def get_permissions(self):
@@ -25,12 +32,15 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action in ['list', 'retrieve']:
             return [IsViewerOrAbove()]
         if self.action in ['update', 'partial_update']:
-            return [IsFinanceOrAdmin()]
+            # Admin-only: a finance user must not be able to promote themselves
+            # (or demote/tamper with other accounts) via a PATCH on the role field.
+            return [IsAdminUser()]
         if self.action == 'destroy':
             return [IsAdminUser()]
         return [IsViewerOrAbove()]
 
-    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny()])
+    @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny()],
+            throttle_classes=[LoginRateThrottle])
     def login(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

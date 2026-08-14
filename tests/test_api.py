@@ -23,6 +23,12 @@ class APITests(TestCase):
         self.user = User.objects.create_user(
             username='user', email='user@example.com', password='userpass123', role='user'
         )
+        self.finance = User.objects.create_user(
+            username='finance', email='finance@example.com', password='financepass123', role='finance'
+        )
+        self.viewer = User.objects.create_user(
+            username='viewer', email='viewer@example.com', password='viewerpass123', role='viewer'
+        )
 
     def test_login_success(self):
         response = self.client.post(reverse('api-login'), {'username': 'admin', 'password': 'adminpass123'})
@@ -50,3 +56,25 @@ class APITests(TestCase):
             'username': 'newuser', 'password': 'newpass123', 'password2': 'newpass123', 'role': 'user'
         })
         self.assertEqual(response.status_code, 403)
+
+    def test_finance_cannot_escalate_own_role(self):
+        self.client.force_login(self.finance)
+        response = self.client.patch(
+            reverse('user-detail', args=[self.finance.id]),
+            {'role': 'admin'}, content_type='application/json')
+        self.assertEqual(response.status_code, 403)
+
+    def test_finance_cannot_update_other_users(self):
+        self.client.force_login(self.finance)
+        response = self.client.patch(
+            reverse('user-detail', args=[self.admin.id]),
+            {'username': 'pwned'}, content_type='application/json')
+        self.assertEqual(response.status_code, 403)
+
+    def test_viewer_user_list_omits_pii(self):
+        self.client.force_login(self.viewer)
+        response = self.client.get(reverse('user-list'))
+        self.assertEqual(response.status_code, 200)
+        first = response.json()[0]
+        self.assertNotIn('email', first)
+        self.assertNotIn('phone', first)

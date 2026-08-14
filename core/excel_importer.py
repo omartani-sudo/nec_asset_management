@@ -137,12 +137,14 @@ def import_lists(file_source, stdout=None):
     }
 
 
-def import_fixed_assets(file_source, stdout=None):
+def import_fixed_assets(file_source, stdout=None, user=None):
     """Import fixed assets from the Fixed_Assets sheet.
 
     Args:
         file_source: File path string OR a file-like object (BytesIO/UploadedFile).
         stdout: Optional output stream for progress messages.
+        user: Optional user performing the import — recorded as created_by/
+            updated_by for the audit trail (falls back to the superuser).
 
     Returns:
         dict with keys: imported (int), skipped (int), errors (list)
@@ -173,6 +175,7 @@ def import_fixed_assets(file_source, stdout=None):
 
     data_start = header_row + 1
     admin_user = User.objects.filter(is_superuser=True).first()
+    audit_user = user or admin_user
 
     imported = 0
     skipped = 0
@@ -275,8 +278,8 @@ def import_fixed_assets(file_source, stdout=None):
                     condition=condition,
                     disposal_date=disposal_date,
                     notes=safe_str(row.iloc[19]),
-                    created_by=admin_user,
-                    updated_by=admin_user,
+                    created_by=audit_user,
+                    updated_by=audit_user,
                 )
             log(f'  IMPORTED: {asset.asset_id} - {asset.asset_name} | '
                 f'Cost: ${asset.purchase_cost} | {asset.depreciation_method} | {asset.useful_life}yr')

@@ -45,3 +45,8 @@ docker-compose.yml
 # Backup files
 *.backup
 *.bak
+
+# Environment secrets (never baked into images)
+.env
+.env.*
+!.env.example

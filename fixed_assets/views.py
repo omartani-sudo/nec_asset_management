@@ -317,6 +317,7 @@ def fixed_assets_by_department(request):
 
 
 @login_required
+@finance_admin_required('fixed_assets:fixed_asset_list')
 def upload_excel(request):
     from core.excel_importer import import_lists, import_fixed_assets
 
@@ -327,7 +328,7 @@ def upload_excel(request):
             try:
                 lists_result = import_lists(excel_file)
                 excel_file.seek(0)  # reset for second read
-                assets_result = import_fixed_assets(excel_file)
+                assets_result = import_fixed_assets(excel_file, user=request.user)
 
                 imported = assets_result.get('imported', 0)
                 skipped = assets_result.get('skipped', 0)

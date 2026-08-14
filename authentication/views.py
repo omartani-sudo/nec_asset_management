@@ -4,13 +4,26 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
+from django.core.cache import cache
+
+LOGIN_MAX_ATTEMPTS = 5
+LOGIN_LOCKOUT_SECONDS = 15 * 60
+
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        username = request.POST.get('username', '')
+        ip = request.META.get('REMOTE_ADDR', '')
+        lock_key = f'login_fail:{username}:{ip}'
+
+        if cache.get(lock_key, 0) >= LOGIN_MAX_ATTEMPTS:
+            messages.error(request, 'Too many failed login attempts. Please try again in 15 minutes.')
+            return render(request, 'authentication/login.html')
+
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user is not None:
+            cache.delete(lock_key)
             login(request, user)
             if hasattr(user, 'role'):
                 messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
@@ -18,6 +31,8 @@ def login_view(request):
                 messages.success(request, f'Welcome back, {user.username}!')
             return redirect('dashboard:dashboard')
         else:
+            attempts = cache.get(lock_key, 0) + 1
+            cache.set(lock_key, attempts, timeout=LOGIN_LOCKOUT_SECONDS)
             messages.error(request, 'Invalid username or password.')
     return render(request, 'authentication/login.html')
 

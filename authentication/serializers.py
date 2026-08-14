@@ -13,6 +13,14 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
+class UserLimitedSerializer(serializers.ModelSerializer):
+    """Reduced user view for viewer/user roles — no email or phone (PII)."""
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'role', 'department']
+        read_only_fields = fields
+
+
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
