@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from django.urls import path
-from .views import index
+from .views import audit_log
 
 app_name = 'core'
 urlpatterns = [
-    path('', index, name='index'),
+    path('', audit_log, name='audit_log'),
 ]

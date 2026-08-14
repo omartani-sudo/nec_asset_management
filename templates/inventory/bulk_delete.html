@@ -30,6 +30,7 @@
 </div>
 <form method="post">
     {% csrf_token %}
+    {% if next_qs %}<input type="hidden" name="next_qs" value="{{ next_qs }}">{% endif %}
     {% for iid in item_ids %}
     <input type="hidden" name="item_ids" value="{{ iid }}">
     {% endfor %}

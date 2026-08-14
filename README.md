@@ -216,6 +216,7 @@ All business models include:
 ### Dashboard
 
 - **8 KPI Cards**: Fixed Assets count, Purchase Cost, Accumulated Depreciation, Net Book Value, Current Assets value, Inventory value, Reorder alerts, Disposed assets
+- **Department filter**: dropdown at the top scopes all fixed/current asset KPIs, category breakdown and the trend chart to one department
 - **Depreciation Trend Chart**: Matplotlib-generated line chart with annual depreciation projections (base64-embedded PNG)
 - **Category Breakdown**: Asset distribution by category with counts
 
@@ -228,14 +229,22 @@ All business models include:
 - Supports serial numbers, suppliers, purchase dates, assigned users
 - Condition tracking: New → Good → Fair → Poor → Broken
 - Disposal date capture for retired assets
+- **Disposal workflow**: one-click "Dispose" on the detail page sets Disposed status + disposal date; depreciation stops and NBV becomes salvage value (Admin/Finance)
 - **Bulk delete**: tick checkboxes on the list (or "Select all") → "Delete Selected" → review the confirmation list → delete all in one transaction (Admin only)
+- **Bulk edit**: change status/department/location/condition/assigned-to (or bulk-dispose) on many assets at once (Admin/Finance)
+- **Search, filter & sort**: search by ID/name/serial/supplier, filter by category, department, location, status, condition and purchase-date range, sortable columns, 25 rows per page with pagination
+- **Excel export** of the (filtered) list
+- **Asset photos**: upload a photo per asset, stored in the media volume, served only to logged-in users
+- **QR-code labels**: QR code on each asset's detail page; select assets on the list → "Print QR" for a printable label sheet (scan opens the asset's page)
+- Editing cost/useful life/salvage/method/dates automatically regenerates the depreciation schedule
 
 ### Current Assets
 
 - Track liquid assets: cash balances, receivables, prepaid expenses
 - Department and location allocation
 - Date-recorded field for month-end reconciliation
-- Bulk delete with checkbox selection (Admin only)
+- Search, filter, sort, pagination and Excel export of the (filtered) list
+- Bulk delete (Admin only) and bulk edit (Admin/Finance)
 
 ### Inventory
 
@@ -243,7 +252,9 @@ All business models include:
 - Auto-calculated `total_value = balance_qty × unit_cost`
 - Auto-calculated `stock_status`: OK, Reorder Needed, Out of Stock
 - Reorder level alerts on dashboard
-- Bulk delete with checkbox selection (Admin only)
+- **Daily reorder email alerts** to Admin/Finance (deduplicated per item)
+- Search, filter (incl. stock status), sort and pagination
+- Bulk delete (Admin only) and bulk edit (Admin/Finance)
 
 ### Reports
 
@@ -283,6 +294,10 @@ Admin-only interface at `/lists/` for managing:
 | **Finance** | Full access (deletes are admin-only) | Write on assets/inventory (no delete), read on lists | No |
 | **User** | Read + limited write | Read-only | No |
 | **Viewer** | Read-only | Read-only | No |
+
+### Audit Trail
+
+Every create / update / delete / bulk delete / bulk edit / dispose on fixed assets, current assets and inventory is recorded automatically — who did it, when, and what changed. View it at `/audit/` (Admin/Finance only), filterable by action, model and date range, and searchable.
 
 ### Data Import
 
@@ -491,6 +506,7 @@ the equivalent `/bulk_delete/` endpoints.
 | Command | Purpose |
 |---------|---------|
 | `python manage.py import_nec_excel <file.xlsx>` | Bulk import from NEC Excel register — creates lists + assets + depreciation |
+| `python manage.py send_reorder_alerts` | Email reorder summary to Admin/Finance (`--days N` dedup window, `--force` to resend) |
 | `python manage.py shell` | Interactive Django shell with auto-imported models |
 | `python manage.py dbshell` | Direct PostgreSQL psql session |
 | `python manage.py createsuperuser` | Create admin user with role assignment |
@@ -612,6 +628,27 @@ EMAIL_HOST_USER=your-email@gmail.com
 EMAIL_HOST_PASSWORD=your-app-password
 DEFAULT_FROM_EMAIL=noreply@your-domain.com
 EMAIL_USE_TLS=True
+```
+
+### Automated Backups
+
+`backups/backup.sh` (run nightly via cron — see `setup-cron.sh`) dumps the PostgreSQL database and the media volume (photos) to `/opt/nec_backups/` with 14-day retention, plus an optional offsite copy (`OFFSITE_DIR` env var).
+
+```bash
+# One-off backup
+cd /opt/nec_asset_management && bash backups/backup.sh
+
+# Restore drill
+gunzip -c /opt/nec_backups/nec_db_<timestamp>.sql.gz \
+  | docker compose exec -T db psql -U nec_user -d nec_asset_management
+```
+
+Cron schedule installed by `setup-cron.sh`:
+
+```
+17 2 * * *   /opt/nec_asset_management/backups/backup.sh          # daily DB + media backup
+23 7 * * *   docker compose exec -T web python manage.py send_reorder_alerts  # daily reorder emails
+*/2 * * * *  bash deploy.sh                                        # auto-deploy poll (requires git setup)
 ```
 
 ### Traefik Integration

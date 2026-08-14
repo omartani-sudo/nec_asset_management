@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset QR Labels</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+</head>
+<body class="p-3">
+    <div class="no-print d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0"><i class="bi bi-qr-code"></i> Asset QR Labels ({{ labels|length }})</h5>
+        <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+    </div>
+    <div class="qr-grid">
+        {% for label in labels %}
+        <div class="qr-label">
+            <div class="qr-code" data-url="{{ label.url }}"></div>
+            <div class="fw-bold">{{ label.asset_id }}</div>
+            <div class="small">{{ label.name }}</div>
+            <div class="small text-muted">{{ label.location }}</div>
+        </div>
+        {% empty %}
+        <p>No assets selected.</p>
+        {% endfor %}
+    </div>
+    <script src="{% static 'js/vendor/qrcode.min.js' %}"></script>
+    <script>
+    (function () {
+        'use strict';
+        document.querySelectorAll('.qr-code').forEach(function (el) {
+            if (window.QRCode) {
+                new QRCode(el, { text: el.dataset.url, width: 140, height: 140,
+                                 correctLevel: QRCode.CorrectLevel.M });
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

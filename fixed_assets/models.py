@@ -46,6 +46,7 @@ class FixedAsset(models.Model):
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_fixed_assets')
     condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default='new')
     disposal_date = models.DateField(null=True, blank=True)
+    photo = models.ImageField(upload_to='asset_photos/', blank=True, null=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -100,6 +101,12 @@ class FixedAsset(models.Model):
             return acc
 
     def net_book_value(self, as_of_date=None):
+        if as_of_date is None:
+            as_of_date = timezone.now().date()
+        dd = to_date(self.disposal_date)
+        if dd and dd <= as_of_date:
+            # Disposed assets are valued at their residual (salvage) value.
+            return self.salvage_value
         return max(self.purchase_cost - self.accumulated_depreciation(as_of_date=as_of_date), self.salvage_value)
 
     def generate_asset_id(self):
@@ -149,6 +156,13 @@ class FixedAsset(models.Model):
 
             opening_nbv = closing_nbv
 
+    # Fields that change the depreciation math. Status/location/condition/etc.
+    # do NOT affect schedules and must not trigger regeneration.
+    SCHEDULE_FIELDS = (
+        'purchase_cost', 'salvage_value', 'useful_life',
+        'depreciation_method', 'purchase_date',
+    )
+
     def save(self, *args, **kwargs):
         if not self.asset_id:
             self.asset_id = self.generate_asset_id()
@@ -156,8 +170,15 @@ class FixedAsset(models.Model):
             count = FixedAsset.objects.count()
             self.serial_number = f'NEC-{count + 1:05d}'
         is_new = self.pk is None
+        old_values = None
+        if not is_new:
+            old_values = FixedAsset.objects.filter(pk=self.pk).values(*self.SCHEDULE_FIELDS).first()
         super().save(*args, **kwargs)
-        if is_new:
+        if is_new or (
+            old_values and any(
+                getattr(self, field) != old_values[field] for field in self.SCHEDULE_FIELDS
+            )
+        ):
             self.generate_schedules()
 
 class DepreciationSchedule(models.Model):

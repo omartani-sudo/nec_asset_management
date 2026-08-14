@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from django import forms
+from django.contrib.auth import get_user_model
 from .models import FixedAsset
 from lists.models import Category, Department, Location, Status
+
+User = get_user_model()
 
 
 class ExcelUploadForm(forms.Form):
@@ -42,7 +45,7 @@ class ExcelUploadForm(forms.Form):
 class FixedAssetForm(forms.ModelForm):
     class Meta:
         model = FixedAsset
-        fields = ['asset_name', 'category', 'department', 'location', 'serial_number', 'supplier', 'purchase_date', 'purchase_cost', 'useful_life', 'salvage_value', 'depreciation_method', 'status', 'assigned_to', 'condition', 'disposal_date', 'notes']
+        fields = ['asset_name', 'category', 'department', 'location', 'serial_number', 'supplier', 'purchase_date', 'purchase_cost', 'useful_life', 'salvage_value', 'depreciation_method', 'status', 'assigned_to', 'condition', 'disposal_date', 'photo', 'notes']
         widgets = {
             'asset_name': forms.TextInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
@@ -59,5 +62,39 @@ class FixedAssetForm(forms.ModelForm):
             'assigned_to': forms.Select(attrs={'class': 'form-select'}),
             'condition': forms.Select(attrs={'class': 'form-select'}),
             'disposal_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'photo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+    def clean_photo(self):
+        photo = self.cleaned_data.get('photo')
+        if photo and photo.size > 5 * 1024 * 1024:
+            raise forms.ValidationError('Photo too large. Maximum size is 5 MB.')
+        return photo
+
+
+class FixedAssetBulkEditForm(forms.Form):
+    """Change shared fields on many fixed assets at once. Empty = no-op."""
+    status = forms.ModelChoiceField(
+        queryset=Status.objects.all(), required=False,
+        empty_label='-- No change --',
+        widget=forms.Select(attrs={'class': 'form-select'}))
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.all(), required=False,
+        empty_label='-- No change --',
+        widget=forms.Select(attrs={'class': 'form-select'}))
+    location = forms.ModelChoiceField(
+        queryset=Location.objects.all(), required=False,
+        empty_label='-- No change --',
+        widget=forms.Select(attrs={'class': 'form-select'}))
+    condition = forms.ChoiceField(
+        choices=[('', '-- No change --')] + list(FixedAsset.CONDITION_CHOICES),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}))
+    assigned_to = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_active=True), required=False,
+        empty_label='-- No change --',
+        widget=forms.Select(attrs={'class': 'form-select'}))
+    dispose = forms.BooleanField(
+        required=False, label='Mark as disposed (sets Disposed status and disposal date to today)',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Bulk Edit Inventory Items{% endblock %}
+{% block content %}
+<h2>Bulk Edit Inventory Items</h2>
+<div class="alert alert-info">
+    Editing <strong>{{ items|length }}</strong> item{{ items|length|pluralize }}. Leave a field blank to keep its current value.
+</div>
+<div class="card mb-3">
+    <div class="card-body table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr><th>Item Code</th><th>Description</th><th>Location</th><th>Reorder Level</th></tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td data-label="Item Code">{{ item.item_code }}</td>
+                    <td data-label="Description">{{ item.description }}</td>
+                    <td data-label="Location">{{ item.location.name }}</td>
+                    <td data-label="Reorder Level">{{ item.reorder_level }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center">No items found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<form method="post">
+    {% csrf_token %}
+    {% for iid in item_ids %}
+    <input type="hidden" name="item_ids" value="{{ iid }}">
+    {% endfor %}
+    {% if next_qs %}<input type="hidden" name="next_qs" value="{{ next_qs }}">{% endif %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
+                    {{ form.location }}
+                </div>
+                <div class="col-12 col-md-6">
+                    <label for="{{ form.reorder_level.id_for_label }}" class="form-label">{{ form.reorder_level.label }}</label>
+                    {{ form.reorder_level }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-grid d-sm-flex gap-2">
+        <button type="submit" name="apply" value="1" class="btn btn-primary"><i class="bi bi-save"></i> Apply Changes</button>
+        <a href="{% url 'inventory:inventory_list' %}{% if next_qs %}?{{ next_qs }}{% endif %}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

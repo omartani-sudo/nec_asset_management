@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from core.views import health_check
+from core.views import health_check, serve_media
 from django.views.generic import TemplateView
 
 urlpatterns = [
@@ -30,6 +30,8 @@ urlpatterns = [
     path('inventory/', include('inventory.urls')),
     path('reports/', include('reports.urls')),
     path('lists/', include('lists.urls')),
+    path('audit/', include('core.urls')),
+    path('media/<path:path>', serve_media, name='media_serve'),
     path('api/auth/', include('authentication.api_urls')),
     path('api/fixed-assets/', include('fixed_assets.api_urls')),
     path('api/current-assets/', include('current_assets.api_urls')),

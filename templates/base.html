@@ -90,6 +90,11 @@
                 <a href="{% url 'lists:lists_home' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.app_name == 'lists' %}active{% endif %}">
                     <i class="bi bi-list me-2"></i> Lists
                 </a>
+                {% if user.role == 'admin' or user.role == 'finance' %}
+                <a href="{% url 'core:audit_log' %}" class="list-group-item list-group-item-action bg-dark text-white {% if request.resolver_match.app_name == 'core' %}active{% endif %}">
+                    <i class="bi bi-clock-history me-2"></i> Audit Log
+                </a>
+                {% endif %}
                 {% if user.is_staff %}
                 <a href="/admin/" class="list-group-item list-group-item-action bg-dark text-white" target="_blank">
                     <i class="bi bi-people me-2"></i> User Management

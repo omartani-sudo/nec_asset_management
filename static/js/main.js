@@ -89,16 +89,19 @@
         }
     });
 
-    // ---- Bulk delete selection (list pages) ----------------------------
+    // ---- Bulk selection (delete / edit / print QR) ---------------------
     const selectAll = document.getElementById('select-all');
     const assetChecks = document.querySelectorAll('.asset-check');
     const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+    const bulkActionBtns = document.querySelectorAll(
+        '#bulk-delete-btn, #bulk-edit-btn, #print-qr-btn'
+    );
 
     if (selectAll && assetChecks.length) {
         function updateBulkState() {
             const checked = Array.prototype.filter.call(assetChecks, function (c) { return c.checked; });
             const anyChecked = checked.length > 0;
-            if (bulkDeleteBtn) bulkDeleteBtn.disabled = !anyChecked;
+            bulkActionBtns.forEach(function (btn) { btn.disabled = !anyChecked; });
             selectAll.checked = anyChecked && checked.length === assetChecks.length;
             selectAll.indeterminate = anyChecked && checked.length < assetChecks.length;
         }

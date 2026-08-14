@@ -1,27 +1,93 @@
 {% extends "base.html" %}
 {% block title %}Inventory{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4 page-header-row">
+<div class="d-flex justify-content-between align-items-center mb-3 page-header-row">
     <h2>Inventory</h2>
     <div>
-        {% if user.role == 'admin' %}
+        {% if can_delete %}
         <button type="submit" form="bulk-delete-form" class="btn btn-danger me-2" id="bulk-delete-btn" disabled>
             <i class="bi bi-trash"></i> Delete Selected
         </button>
         {% endif %}
+        {% if can_edit %}
+        <button type="submit" form="bulk-delete-form" formaction="{% url 'inventory:inventory_bulk_edit' %}" class="btn btn-outline-primary me-2" id="bulk-edit-btn" disabled>
+            <i class="bi bi-pencil-square"></i> Bulk Edit
+        </button>
+        {% endif %}
         <a href="{% url 'inventory:reorder_list' %}" class="btn btn-warning me-2"><i class="bi bi-exclamation-triangle"></i> Reorder List</a>
+        {% if can_edit %}
         <a href="{% url 'inventory:inventory_create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> Add Item</a>
+        {% endif %}
     </div>
 </div>
+
+<!-- Filter / search bar -->
+<div class="card mb-3">
+    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+        <a class="text-decoration-none" data-bs-toggle="collapse" href="#filterCollapse" role="button" aria-expanded="false">
+            <i class="bi bi-funnel"></i> Filter &amp; Search
+            {% if query_string %}<span class="badge bg-primary ms-1">active</span>{% endif %}
+        </a>
+        {% if query_string %}<a href="{% url 'inventory:inventory_list' %}" class="btn btn-sm btn-outline-secondary">Clear</a>{% endif %}
+    </div>
+    <div class="collapse" id="filterCollapse">
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <div class="col-12 col-md-4">
+                    <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Search code or description...">
+                </div>
+                <div class="col-6 col-md-2">
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for c in categories %}<option value="{{ c.pk }}" {% if request.GET.category == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <select name="location" class="form-select">
+                        <option value="">All Locations</option>
+                        {% for l in locations %}<option value="{{ l.pk }}" {% if request.GET.location == l.pk|stringformat:"s" %}selected{% endif %}>{{ l.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <select name="stock_status" class="form-select">
+                        <option value="">All Stock</option>
+                        <option value="ok" {% if request.GET.stock_status == 'ok' %}selected{% endif %}>OK</option>
+                        <option value="reorder" {% if request.GET.stock_status == 'reorder' %}selected{% endif %}>Reorder Needed</option>
+                        <option value="out" {% if request.GET.stock_status == 'out' %}selected{% endif %}>Out of Stock</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <select name="sort" class="form-select">
+                        <option value="">Sort: Default</option>
+                        {% for key, field in sort_map.items %}
+                        <option value="{{ key }}" {% if request.GET.sort == key %}selected{% endif %}>Sort: {{ key|title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <select name="dir" class="form-select">
+                        <option value="asc" {% if request.GET.dir != 'desc' %}selected{% endif %}>Ascending</option>
+                        <option value="desc" {% if request.GET.dir == 'desc' %}selected{% endif %}>Descending</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-body">
         <form id="bulk-delete-form" method="post" action="{% url 'inventory:inventory_bulk_delete' %}">
             {% csrf_token %}
+            {% if query_string %}<input type="hidden" name="next_qs" value="{{ query_string }}">{% endif %}
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            {% if user.role == 'admin' %}
+                            {% if can_delete or can_edit %}
                             <th><input type="checkbox" id="select-all" title="Select all"></th>
                             {% endif %}
                             <th>Item Code</th><th>Description</th><th>Category</th><th>Unit</th><th>Open</th><th>Rec</th><th>Iss</th><th>Balance</th><th>Unit Cost</th><th>Total</th><th>Status</th><th>Actions</th>
@@ -30,7 +96,7 @@
                     <tbody>
                     {% for item in items %}
                     <tr>
-                        {% if user.role == 'admin' %}
+                        {% if can_delete or can_edit %}
                         <td class="checkbox-cell" data-label="Select"><input type="checkbox" name="item_ids" value="{{ item.pk }}" class="asset-check"></td>
                         {% endif %}
                         <td data-label="Item Code">{{ item.item_code }}</td>
@@ -49,19 +115,22 @@
                             {% else %}<span class="badge bg-success">{{ item.stock_status }}</span>{% endif %}
                         </td>
                         <td>
+                            {% if can_edit %}
                             <a href="{% url 'inventory:inventory_update' item.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                            {% if user.role == 'admin' %}
+                            {% endif %}
+                            {% if can_delete %}
                             <a href="{% url 'inventory:inventory_delete' item.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="{% if user.role == 'admin' %}13{% else %}12{% endif %}" class="text-center">No inventory items found.</td></tr>
+                    <tr><td colspan="{% if can_delete or can_edit %}13{% else %}12{% endif %}" class="text-center">No inventory items found.{% if query_string %} Try clearing the filters.{% endif %}</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
         </form>
+        {% include "includes/pagination.html" %}
     </div>
 </div>
 {% endblock %}

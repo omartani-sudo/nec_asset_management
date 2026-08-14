@@ -53,6 +53,24 @@ else
     echo "[OK] Cron entry added: $CRON_SCHEDULE $CRON_CMD"
 fi
 
+# Step 5: Add nightly DB/media backup cron (02:17 daily)
+BACKUP_CRON_CMD="cd $PROJECT_DIR && bash backups/backup.sh >> /var/log/nec-backup.log 2>&1"
+if crontab -l 2>/dev/null | grep -q "backups/backup.sh"; then
+    echo "[SKIP] Backup cron already exists"
+else
+    (crontab -l 2>/dev/null; echo "17 2 * * * $BACKUP_CRON_CMD") | crontab -
+    echo "[OK] Backup cron added: daily 02:17 -> $BACKUP_CRON_CMD"
+fi
+
+# Step 6: Add daily reorder email alerts cron (07:23 daily)
+REORDER_CRON_CMD="cd $PROJECT_DIR && docker compose exec -T web python manage.py send_reorder_alerts >> /var/log/nec-reorder.log 2>&1"
+if crontab -l 2>/dev/null | grep -q "send_reorder_alerts"; then
+    echo "[SKIP] Reorder alerts cron already exists"
+else
+    (crontab -l 2>/dev/null; echo "23 7 * * * $REORDER_CRON_CMD") | crontab -
+    echo "[OK] Reorder alerts cron added: daily 07:23 -> $REORDER_CRON_CMD"
+fi
+
 echo ""
 echo "=== Setup Complete ==="
 echo ""

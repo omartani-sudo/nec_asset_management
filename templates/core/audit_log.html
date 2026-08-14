@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Audit Log{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 page-header-row">
+    <h2><i class="bi bi-clock-history"></i> Audit Log</h2>
+    {% if query_string %}<a href="{% url 'core:audit_log' %}" class="btn btn-sm btn-outline-secondary">Clear Filters</a>{% endif %}
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-12 col-md-4">
+                <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Search object...">
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="action" class="form-select">
+                    <option value="">All Actions</option>
+                    {% for value, label in actions %}<option value="{{ value }}" {% if request.GET.action == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="model_name" class="form-select">
+                    <option value="">All Models</option>
+                    {% for m in model_names %}<option value="{{ m }}" {% if request.GET.model_name == m %}selected{% endif %}>{{ m }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <input type="date" name="date_from" value="{{ request.GET.date_from }}" class="form-control" title="From">
+            </div>
+            <div class="col-6 col-md-2">
+                <input type="date" name="date_to" value="{{ request.GET.date_to }}" class="form-control" title="To">
+            </div>
+            <div class="col-12 col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary">Apply</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr><th>When</th><th>User</th><th>Action</th><th>Model</th><th>Object</th><th>Details</th></tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td data-label="When">{{ entry.timestamp|date:"Y-m-d H:i" }}</td>
+                        <td data-label="User">{{ entry.user.username|default:"—" }}</td>
+                        <td data-label="Action">
+                            {% if entry.action == 'delete' or entry.action == 'bulk_delete' %}<span class="badge bg-danger">{% elif entry.action == 'create' %}<span class="badge bg-success">{% elif entry.action == 'update' or entry.action == 'bulk_edit' %}<span class="badge bg-warning text-dark">{% else %}<span class="badge bg-secondary">{% endif %}{{ entry.get_action_display }}</span>
+                        </td>
+                        <td data-label="Model">{{ entry.model_name }}</td>
+                        <td data-label="Object">{{ entry.object_repr }}</td>
+                        <td data-label="Details">
+                            {% if entry.details.fields %}<small class="text-muted">{{ entry.details.fields|join:", " }}</small>{% elif entry.details.count %}<small class="text-muted">{{ entry.details.count }} item(s)</small>{% else %}<span class="text-muted">—</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center">No audit entries found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "includes/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

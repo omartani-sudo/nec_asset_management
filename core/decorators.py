@@ -19,3 +19,20 @@ def admin_required(list_url_name):
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
+
+
+def finance_admin_required(list_url_name):
+    """Allow only admin/finance roles; redirect others to the given list view.
+
+    Web counterpart of the API's IsFinanceOrAdmin permission — used for
+    create/update/bulk edit actions. Place under @login_required.
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            if getattr(request.user, 'role', None) not in ('admin', 'finance'):
+                messages.error(request, 'You do not have permission to perform this action.')
+                return redirect(list_url_name)
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator

@@ -2,12 +2,13 @@
 import io
 import base64
 from decimal import Decimal
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, ExpressionWrapper, IntegerField, Sum, Count
 from fixed_assets.models import FixedAsset, DepreciationSchedule
 from current_assets.models import CurrentAsset
 from inventory.models import InventoryItem
+from lists.models import Department
 from datetime import date
 import matplotlib
 matplotlib.use('Agg')
@@ -17,10 +18,13 @@ from matplotlib.dates import DateFormatter
 import numpy as np
 
 
-def generate_depreciation_chart_base64():
+def generate_depreciation_chart_base64(department=None):
     """Generate a base64-encoded PNG of the depreciation trend chart using
     actual depreciation schedule data for the most accurate projection."""
-    schedules = DepreciationSchedule.objects.select_related('asset').all().order_by('asset', 'year_number')
+    schedules = DepreciationSchedule.objects.select_related('asset')
+    if department:
+        schedules = schedules.filter(asset__department=department)
+    schedules = schedules.order_by('asset', 'year_number')
 
     if not schedules.exists():
         return ''
@@ -75,13 +79,24 @@ def generate_depreciation_chart_base64():
 
 @login_required
 def dashboard(request):
+    # Optional department filter (?department=<id>)
+    selected_department = None
+    dept_param = request.GET.get('department', '')
+    if dept_param and dept_param.isdigit():
+        selected_department = get_object_or_404(Department, pk=int(dept_param))
+
     assets = FixedAsset.objects.all()
+    current_assets = CurrentAsset.objects.all()
+    if selected_department:
+        assets = assets.filter(department=selected_department)
+        current_assets = current_assets.filter(department=selected_department)
+
     total_fixed = assets.count()
     total_purchase_cost = sum(float(a.purchase_cost) for a in assets)
     total_accumulated_depr = sum(float(a.accumulated_depreciation()) for a in assets)
     total_net_book_value = sum(float(a.net_book_value()) for a in assets)
 
-    total_current = sum(float(c.value) for c in CurrentAsset.objects.all())
+    total_current = sum(float(c.value) for c in current_assets)
     total_inventory = sum(float(i.total_value) for i in InventoryItem.objects.all())
 
     inventory_annotated = InventoryItem.objects.annotate(
@@ -94,7 +109,7 @@ def dashboard(request):
         balance__lte=F('reorder_level'), balance__gt=0
     ).count()
     out_of_stock = inventory_annotated.filter(balance=0).count()
-    disposed_count = FixedAsset.objects.filter(
+    disposed_count = assets.filter(
         status__name__icontains='Disposed'
     ).count()
 
@@ -106,7 +121,7 @@ def dashboard(request):
     )
 
     # Generate depreciation trend chart
-    chart_base64 = generate_depreciation_chart_base64()
+    chart_base64 = generate_depreciation_chart_base64(department=selected_department)
 
     context = {
         'total_fixed': total_fixed,
@@ -120,5 +135,7 @@ def dashboard(request):
         'disposed_count': disposed_count,
         'chart_base64': chart_base64,
         'category_data': list(category_data),
+        'departments': Department.objects.filter(is_active=True),
+        'selected_department': selected_department,
     }
     return render(request, 'dashboard/dashboard.html', context)

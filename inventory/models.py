@@ -15,6 +15,7 @@ class InventoryItem(models.Model):
     issued_qty = models.PositiveIntegerField(default=0)
     unit_cost = models.DecimalField(max_digits=12, decimal_places=2)
     reorder_level = models.PositiveIntegerField(default=0)
+    last_alert_sent = models.DateTimeField(null=True, blank=True)
     location = models.ForeignKey('lists.Location', on_delete=models.PROTECT, related_name='inventory_items')
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

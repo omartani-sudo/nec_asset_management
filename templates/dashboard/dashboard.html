@@ -4,10 +4,29 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3 page-header-row">
     <h4 class="mb-0">Dashboard Overview</h4>
-    <a href="{% url 'fixed_assets:upload_excel' %}" class="btn btn-outline-primary">
-        <i class="bi bi-file-earmark-excel"></i> Import Excel
-    </a>
+    <div>
+        <form method="get" class="d-inline-flex align-items-center gap-2">
+            <select name="department" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">All Departments</option>
+                {% for d in departments %}
+                <option value="{{ d.pk }}" {% if selected_department.pk == d.pk %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+            {% if selected_department %}
+            <a href="{% url 'dashboard:dashboard' %}" class="btn btn-sm btn-outline-secondary">Clear</a>
+            {% endif %}
+        </form>
+        <a href="{% url 'fixed_assets:upload_excel' %}" class="btn btn-outline-primary">
+            <i class="bi bi-file-earmark-excel"></i> Import Excel
+        </a>
+    </div>
 </div>
+{% if selected_department %}
+<div class="alert alert-info py-2 mb-3">
+    Showing fixed &amp; current asset KPIs for <strong>{{ selected_department.name }}</strong>.
+    Inventory figures are organization-wide.
+</div>
+{% endif %}
 <div class="row mb-4">
     <div class="col-6 col-sm-6 col-md-3">
         <div class="card bg-primary text-white">
