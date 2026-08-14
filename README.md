@@ -398,7 +398,7 @@ python manage.py runserver
 POST /api/auth/login/         → { access, refresh }
   │
   ├─ Access token: 12-hour expiry, use in Authorization header
-  └─ Refresh token: 7-day expiry, use at /api/auth/login/refresh/
+  └─ Refresh token: 1-day expiry, single-use (rotates + blacklists on refresh), use at /api/auth/login/refresh/
 ```
 
 ### Quick Example
@@ -407,7 +407,7 @@ POST /api/auth/login/         → { access, refresh }
 # 1. Login — get tokens
 curl -X POST https://tournook.com/api/auth/login/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "NECadmin2026!"}'
+  -d '{"username": "admin", "password": "<your-admin-password>"}'
 
 # Response:
 # {"access": "eyJ0eXAiOiJKV1QiLCJhbGciOi...", "refresh": "..."}
@@ -425,8 +425,9 @@ curl https://tournook.com/api/fixed-assets/fixed-assets/ \
 | POST | `/api/auth/login/refresh/` | Refresh | — | Refresh access token |
 | POST | `/api/auth/logout/` | Access | — | Invalidate session |
 | POST | `/api/auth/users/change-password/` | Access | All auth'd | Change own password |
-| GET | `/api/auth/users/` | Access | All auth'd | List users |
+| GET | `/api/auth/users/` | Access | All auth'd | List users (email/phone visible to Admin/Finance only) |
 | POST | `/api/auth/users/` | Access | Admin | Create user |
+| PUT/PATCH | `/api/auth/users/{id}/` | Access | Admin | Update user (role changes are admin-only) |
 | GET | `/api/fixed-assets/fixed-assets/` | Access | All auth'd | List fixed assets (paginated) |
 | POST | `/api/fixed-assets/fixed-assets/` | Access | Finance/Admin | Create fixed asset |
 | GET | `/api/fixed-assets/fixed-assets/{id}/` | Access | All auth'd | Retrieve asset detail |
@@ -457,6 +458,7 @@ curl https://tournook.com/api/fixed-assets/fixed-assets/ \
 - **Page size**: 20 items per page (`?page=2`)
 - **Anonymous**: 100 requests/day
 - **Authenticated**: 1,000 requests/day
+- **Login endpoints**: 5 attempts/minute per IP (brute-force brake)
 
 ### Creating a Fixed Asset (Example)
 
@@ -708,11 +710,14 @@ http:
 | **Referrer Policy** | `strict-origin-when-cross-origin` | `Referrer-Policy: strict-origin-when-cross-origin` |
 | **CSRF** | Django CSRF middleware | Token per form + cookie |
 | **Session** | HttpOnly + Secure + SameSite=Lax | 12-hour expiry |
-| **API Auth** | JWT (RS256-equivalent) | 12h access / 7d refresh |
+| **API Auth** | JWT (HS256, rotated + blacklisted refresh) | 12h access / 1d refresh |
 | **Password Hashing** | Django PBKDF2 (default) | Salted + iterated |
 | **SQL Injection** | Django ORM parameterized queries | Prepared statements |
 | **XSS** | Django template auto-escaping | Output encoding |
 | **Delete Protection** | Deletes (single + bulk, web + API) restricted to the admin role | 403 / redirect for other roles |
+| **Login Protection** | Web login: 5 failed attempts → 15-minute lockout per username+IP; API login: 5/min/IP | Lockout message / 429 |
+| **Upload Hardening** | Excel import gated to Admin/Finance; 10 MB upload + 100 MB decompressed caps; MIME validation | 403 / validation error |
+| **Token Revocation** | Refresh tokens rotate + blacklist on every refresh; deactivated accounts rejected on each request | 401 |
 
 ### Security Headers (Live Response)
 

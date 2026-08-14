@@ -78,3 +78,21 @@ class APITests(TestCase):
         first = response.json()[0]
         self.assertNotIn('email', first)
         self.assertNotIn('phone', first)
+
+    def test_refresh_token_is_single_use(self):
+        login = self.client.post(reverse('api-login'), {'username': 'admin', 'password': 'adminpass123'})
+        self.assertEqual(login.status_code, 200)
+        refresh = login.json()['refresh']
+        first = self.client.post(reverse('api-token-refresh'), {'refresh': refresh})
+        self.assertEqual(first.status_code, 200)
+        second = self.client.post(reverse('api-token-refresh'), {'refresh': refresh})
+        self.assertEqual(second.status_code, 401)
+
+    def test_inactive_user_token_rejected(self):
+        login = self.client.post(reverse('api-login'), {'username': 'viewer', 'password': 'viewerpass123'})
+        self.assertEqual(login.status_code, 200)
+        token = login.json()['access']
+        self.viewer.is_active = False
+        self.viewer.save()
+        response = self.client.get(reverse('fixedasset-list'), HTTP_AUTHORIZATION=f'Bearer {token}')
+        self.assertEqual(response.status_code, 401)

@@ -11,7 +11,6 @@ from django.db.models import Q
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
-from io import StringIO
 
 from .models import AuditLog
 from .filters import query_string, page_range
@@ -19,34 +18,17 @@ from core.decorators import finance_admin_required
 
 
 def health_check(request):
+    """Public liveness probe. Deliberately terse: no deployment details
+    (migration state, versions) leak to unauthenticated callers."""
     try:
         connection.ensure_connection()
-
-        from django.core.management import call_command
-        output = StringIO()
-        call_command('showmigrations', '--plan', stdout=output, no_color=True)
-        migrations = output.getvalue()
-        unapplied = [line for line in migrations.split('\n') if '[ ]' in line]
-
-        if unapplied:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Migrations not applied',
-                'unapplied_migrations': len(unapplied),
-                'timestamp': timezone.now().isoformat()
-            }, status=500)
-
         return JsonResponse({
             'status': 'ok',
             'message': 'All systems operational',
-            'database': 'connected',
-            'migrations': 'applied',
             'timestamp': timezone.now().isoformat()
         })
-
     except Exception as e:
-        from django.conf import settings as dj_settings
-        message = str(e) if dj_settings.DEBUG else 'Service temporarily unavailable'
+        message = str(e) if settings.DEBUG else 'Service temporarily unavailable'
         return JsonResponse({
             'status': 'error',
             'message': message,
