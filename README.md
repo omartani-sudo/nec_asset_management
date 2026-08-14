@@ -722,10 +722,12 @@ http:
 | **Password Hashing** | Django PBKDF2 (default) | Salted + iterated |
 | **API Responses** | JSON-only renderer in production (browsable API disabled) | `Content-Type: application/json` |
 | **User Data Privacy** | Email/phone hidden from viewer/user roles in the users API | PII-limited serializer |
+| **Content Security Policy** | `default-src 'self'` with allowlisted CDNs (jsdelivr, Google Fonts); `frame-ancestors 'none'` | `Content-Security-Policy` |
+| **Permissions Policy** | Camera/microphone/geolocation disabled | `Permissions-Policy` |
 | **SQL Injection** | Django ORM parameterized queries | Prepared statements |
 | **XSS** | Django template auto-escaping | Output encoding |
 | **Delete Protection** | Deletes (single + bulk, web + API) restricted to the admin role | 403 / redirect for other roles |
-| **Login Protection** | Web login: 5 failed attempts → 15-minute lockout per username+IP; API login: 5/min/IP | Lockout message / 429 |
+| **Login Protection** | Web login: 5 failed attempts → 15-minute lockout per username+IP (HTTP 429); API login: 5/min/IP throttle (429); Django admin login: 5/IP → 15-min lockout | 429 / lockout |
 | **Upload Hardening** | Excel import gated to Admin/Finance; 10 MB upload + 100 MB decompressed caps; MIME validation | 403 / validation error |
 | **Token Revocation** | Refresh tokens rotate + blacklist on every refresh; deactivated accounts rejected on each request | 401 |
 
@@ -733,6 +735,8 @@ http:
 
 ```http
 strict-transport-security: max-age=31536000; includeSubDomains; preload
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'none'
+permissions-policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
 x-content-type-options: nosniff
 x-frame-options: DENY
 referrer-policy: strict-origin-when-cross-origin
@@ -877,7 +881,7 @@ nec_asset_management/
 │   ├── test_bulk_delete.py        # Bulk delete + role-gating tests
 │   └── test_*.py                  # Filters/pagination, audit, exports, bulk edit,
 │                                  #   disposal, photos, QR print, reorder emails,
-│                                  #   dashboard filter (10 suites, 81 tests)
+│                                  #   dashboard filter (11 suites, 85 tests)
 │
 ├── NEC Asset registration -Final.xlsx  # Reference data source
 ├── Dockerfile                     # Multi-stage Docker build
